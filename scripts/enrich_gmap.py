@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-CSVから取得したクリニックにGoogleマップ情報を補完するスクリプト
-クリニック名・住所からPlace ID、CID、評価などを取得
+CSVから取得したクリニックにGoogleマップ情報を補完するスクリプト（Phase 1A: Fast API版）
+クリニック名・住所からPlace ID、評価のみ取得（CID・Website取得は別フェーズで実施）
 """
 import sys
 import os
@@ -37,13 +37,14 @@ def enrich_with_gmap(limit=None):
         print(f"対象クリニック: {total}件")
         print(f"Google Maps API Key: {'設定済み' if api_key else '未設定'}")
         
-        driver = None
         success = 0
         failed = 0
         skipped = 0
         
+        # Phase 1A: CID不要なので Selenium driver も不要
+        # driver = get_stealth_driver()
+        
         try:
-            driver = get_stealth_driver()
             
             for i, salon in enumerate(salons, 1):
                 try:
@@ -98,20 +99,9 @@ def enrich_with_gmap(limit=None):
                         
                         print(f"  → 評価: {rating}★ ({review_count}件)")
                     
-                    # CIDを取得
-                    if salon.place_id:
-                        salon.cid = get_cid_from_place_id(salon.place_id, driver)
-                        if salon.cid:
-                            print(f"  → CID: {salon.cid}")
-                            
-                            # 公式サイトURLを取得
-                            if not salon.website_url:  # CSVにURLがない場合のみ
-                                website = get_website_from_gmap(driver)
-                                if website:
-                                    salon.website_url = website
-                                    print(f"  → 公式サイト: {website}")
-                            
-                        time.sleep(2)  # レート制限対策
+                    # CID・Websiteは別フェーズで取得（Selenium timeout対策）
+                    # salon.cid = get_cid_from_place_id(salon.place_id, driver)
+                    # salon.website_url = get_website_from_gmap(driver)
                     
                     db.session.commit()
                     success += 1
@@ -130,8 +120,8 @@ def enrich_with_gmap(limit=None):
                     continue
         
         finally:
-            if driver:
-                driver.quit()
+            # driver は未使用
+            pass
         
         print(f"\n=== GMAP情報補完完了 ===")
         print(f"成功: {success}件")

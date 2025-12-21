@@ -7,37 +7,233 @@
 
 ## フェーズ1: 既存CSVデータのGMAP補完 【優先度：最高】
 
-### 目的
-トリビューCSVの1,905件に対してGoogleマップ情報を補完
+### Phase 1A: 高速API補完（Place ID + 評価のみ） 🚀
 
-### 対象データ
-- **件数**: 1,905件（東京都のクリニック）
-- **ソース**: `csv/deepbiz_list - トリビュー.csv`
-- **現状**: 10件のみGMAP補完済み、残り1,895件未処理
+#### 目的
+トリビューCSVの1,905件に対してコアデータを最速で取得
 
-### 取得する情報
-- Place ID（Googleマップの一意識別子）
-- CID（Googleマップリンク用ID）
-- Website URL（公式サイトURL）
-- Rating（評価）
-- Review Count（口コミ数）
+#### 取得する情報
+- **Place ID**（Googleマップの一意識別子）
+- **Rating**（評価・星数）
+- **Review Count**（口コミ数）
 
-### 実行方法
+#### 実行方法
 ```bash
 # VPS上で実行
 cd /var/www/salon_app
 source venv/bin/activate
-python scripts/enrich_gmap.py
+screen -dmS gmap_enrich bash -c "python scripts/enrich_gmap.py > gmap_enrich.log 2>&1"
+
+# 進捗確認
+screen -r gmap_enrich  # Ctrl+A → D で離脱
+tail -f gmap_enrich.log
 ```
 
-### コスト・時間
-- **API費用**: 約$61（Text Search API: $32/1000リクエスト）
-- **所要時間**: 1.5〜2時間
+#### コスト・時間
+- **API費用**: 約$61（Text Search API: $32/1000リクエスト × 1,905件）
+- **所要時間**: 2〜3時間（約6件/分、Selenium不使用）
 - **API無料枠**: $200/月（十分に余裕あり）
 
-### スクリプト
+#### スクリプト
 - **ファイル**: `scripts/enrich_gmap.py`
-- **状態**: 実装済み、10件でテスト成功
+- **状態**: CID・Website取得をスキップした高速版に修正済み
+- **更新日**: 2025-12-22
+
+---
+
+### Phase 1B: CID・Website取得（Selenium Scraping） 🐢
+
+#### 目的
+Place IDが判明したクリニックに対してCIDと公式サイトURLを追加取得
+
+#### 背景
+- **CID取得**: SeleniumでGoogleマップページをロードし、URLからCIDパラメータを抽出
+- **課題**: ChromeDriver接続が頻繁にタイムアウト（120秒/件）
+- **判断**: Phase 1Aの高速処理を優先し、CID/Websiteは別途処理
+
+#### 取得する情報
+- **CID**（Googleマップ直リンク用ID）
+- **Website URL**（公式サイトURL - CSVに無い場合のみ）
+
+#### 取得方法の選択肢
+
+**Option A: Selenium Scraping（無料、低速）**
+```python
+# scripts/enrich_cid.py - 新規作成予定
+# Place IDからCID・Websiteをスクレイピング
+# - timeout対策（最大60秒）
+# - retry機能（3回まで）
+# - checkpoint保存（100件ごと）
+```
+- **コスト**: $0（API不使用）
+- **所要時間**: 8〜10時間（推定、timeout対策次第）
+- **対象**: 1,214件（Phase 1A完了後の残り）
+
+**Option B: Place Details API（有料、高速）**
+```python
+# Place Details APIでWebsite URLを直接取得
+# CIDはURL構造から推測可能な場合あり
+```
+- **コスト**: 約$21（Place Details API: $17/1000 × 1,214件、websiteフィールド追加で$0.003増）
+- **所要時間**: 20分程度
+- **精度**: 公式サイトURLは100%、CIDは取得不可
+
+**推奨**: まずPhase 1Aを完了させ、結果を見て判断（CSVに既に91.8%のURLあり）
+
+---
+
+### Phase 1C: 公式サイト解析（Contact Page Scraping） 📧
+
+#### 目的
+公式サイトURLから問い合わせページ・メールアドレスを抽出
+
+#### 対象データ
+- **Phase 1B完了後**: Website URL保有クリニック（約1,749件 + Phase 1B追加分）
+- **現状**: CSVから1,749件（91.8%）が既にURLを保有
+
+#### 取得する情報
+1. **問い合わせページURL**
+   - パターン: `/contact`, `/inquiry`, `/form`, `/toiawase`
+   - 例: `https://example-clinic.jp/contact/`
+
+2. **メールアドレス**
+   - 正規表現で抽出: `[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}`
+   - 例: `info@example-clinic.jp`
+
+3. **電話番号**（オプション）
+   - パターン: `03-1234-5678`, `0120-XXX-XXX`
+
+#### スクレイピングフロー
+
+```python
+# scripts/scrape_website_contacts.py - 新規作成予定
+
+def scrape_contact_info(website_url):
+    """
+    公式サイトから問い合わせ情報を取得
+    
+    Args:
+        website_url: クリニックの公式サイトURL
+    
+    Returns:
+        dict: {
+            'contact_page_url': str or None,
+            'emails': list[str],
+            'phones': list[str]
+        }
+    """
+    driver = get_stealth_driver()
+    result = {'contact_page_url': None, 'emails': [], 'phones': []}
+    
+    try:
+        # Step 1: トップページをロード
+        driver.get(website_url)
+        time.sleep(2)
+        
+        # Step 2: 問い合わせページリンクを探す
+        contact_keywords = ['お問い合わせ', '問い合わせ', 'contact', 'お問合せ', 'inquiry']
+        contact_link = None
+        
+        for keyword in contact_keywords:
+            elements = driver.find_elements(By.PARTIAL_LINK_TEXT, keyword)
+            if elements:
+                contact_link = elements[0].get_attribute('href')
+                break
+        
+        # Step 3: 問い合わせページが見つかったらロード
+        if contact_link:
+            result['contact_page_url'] = contact_link
+            driver.get(contact_link)
+            time.sleep(2)
+        
+        # Step 4: ページ全体からメール・電話を抽出
+        page_source = driver.page_source
+        
+        # メールアドレス抽出
+        email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+        emails = re.findall(email_pattern, page_source)
+        result['emails'] = list(set(emails))  # 重複除去
+        
+        # 電話番号抽出（日本の固定電話・フリーダイヤル）
+        phone_pattern = r'0\d{1,4}-\d{1,4}-\d{4}'
+        phones = re.findall(phone_pattern, page_source)
+        result['phones'] = list(set(phones))
+        
+        return result
+        
+    except Exception as e:
+        print(f"エラー: {website_url} - {e}")
+        return result
+    
+    finally:
+        driver.quit()
+
+
+def enrich_contacts():
+    """全クリニックの問い合わせ情報を収集"""
+    with app.app_context():
+        # Website URLがあるクリニックを取得
+        salons = Salon.query.filter(Salon.website_url.isnot(None)).all()
+        total = len(salons)
+        
+        print(f"対象クリニック: {total}件")
+        
+        for i, salon in enumerate(salons, 1):
+            print(f"\n[{i}/{total}] {salon.name}")
+            
+            contact_info = scrape_contact_info(salon.website_url)
+            
+            # DBに保存（新規カラム追加が必要）
+            # salon.contact_page_url = contact_info['contact_page_url']
+            # salon.contact_emails = ','.join(contact_info['emails'])
+            # salon.contact_phones = ','.join(contact_info['phones'])
+            
+            print(f"  問い合わせページ: {contact_info['contact_page_url']}")
+            print(f"  メール: {contact_info['emails']}")
+            print(f"  電話: {contact_info['phones']}")
+            
+            db.session.commit()
+            
+            time.sleep(3)  # サーバー負荷対策
+```
+
+#### DB拡張（必要な場合）
+
+```python
+# models.py - Salon モデルに追加
+class Salon(db.Model):
+    # ... 既存フィールド
+    
+    # Phase 1C で追加
+    contact_page_url = db.Column(db.String(500))  # 問い合わせページURL
+    contact_emails = db.Column(db.String(500))    # メールアドレス（カンマ区切り）
+    contact_phones = db.Column(db.String(200))    # 電話番号（カンマ区切り）
+```
+
+#### 実行方法
+```bash
+cd /var/www/salon_app
+source venv/bin/activate
+screen -dmS website_scrape bash -c "python scripts/scrape_website_contacts.py > website_scrape.log 2>&1"
+```
+
+#### コスト・時間
+- **API費用**: $0（スクレイピングのみ）
+- **所要時間**: 8〜12時間（約3件/分、各サイト3秒待機）
+- **対象**: 1,749件（現在Website URL保有数）
+
+#### 注意事項
+- **robots.txt遵守**: 各サイトのクローリングポリシーを確認
+- **レート制限**: 同一ドメインへの連続アクセスを避ける（3秒待機）
+- **エラーハンドリング**: サイトダウン・403エラーに対応
+- **個人情報保護**: 取得したメールアドレスの取り扱いに注意
+
+---
+
+### 対象データ
+- **件数**: 1,905件（東京都のクリニック）
+- **ソース**: `csv/deepbiz_list - トリビュー.csv`
+- **現状**: Phase 1A実行中（691件完了、1,214件残）
 
 ---
 
