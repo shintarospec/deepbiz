@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %}
+
+{% block title %}広告管理{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    {% for ad in ads %}
+    <div class="col-md-6 mb-4">
+        <h2>{{ '上部広告枠' if ad.slot_name == 'top' else '下部広告枠' }}</h2>
+        <div class="card bg-dark border-secondary">
+            <div class="card-body">
+                <form method="post">
+                    <input type="hidden" name="slot_name" value="{{ ad.slot_name }}">
+                    
+                    <div class="mb-3">
+                        <label for="title-{{ ad.slot_name }}" class="form-label">タイトル</label>
+                        <input type="text" class="form-control" id="title-{{ ad.slot_name }}" name="title" value="{{ ad.title or '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description-{{ ad.slot_name }}" class="form-label">説明文</label>
+                        <textarea class="form-control" id="description-{{ ad.slot_name }}" name="description" rows="3">{{ ad.description or '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="link_url-{{ ad.slot_name }}" class="form-label">リンク先URL</label>
+                        <input type="url" class="form-control" id="link_url-{{ ad.slot_name }}" name="link_url" value="{{ ad.link_url or '' }}">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> 保存
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,279 @@
+{% extends "admin/base.html" %}
+{% block title %}サロン一覧{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>サロン一覧</h2>
+    <a href="{{ url_for('add_salon') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> 新規サロン追加
+    </a>
+</div>
+
+{# ===== 絞り込み・検索フォーム ===== #}
+<div class="card bg-dark border-secondary mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('admin_index') }}">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="category_id" class="form-label">カテゴリ</label>
+                    <select id="category_id" name="category_id" class="form-select">
+                        <option value="">すべて</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if filters.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="prefecture" class="form-label">都道府県</label>
+                    <select id="prefecture" name="prefecture" class="form-select">
+                        <option value="">すべて</option>
+{# ▼▼▼▼▼ この1行を新しく追加 ▼▼▼▼▼ #}
+        <option value="__EMPTY__" {% if filters.prefecture == '__EMPTY__' %}selected{% endif %}>[ 住所未登録 ]</option>
+        {# ▲▲▲▲▲ ここまで ▲▲▲▲▲ #}
+                        {% for pref in prefectures %}
+                        <option value="{{ pref }}" {% if filters.prefecture == pref %}selected{% endif %}>{{ pref }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="search_name" class="form-label">サロン名検索</label>
+                    <input type="text" id="search_name" name="search_name" class="form-control" placeholder="サロン名" value="{{ filters.search_name }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="search_address" class="form-label">住所検索</label>
+                    <input type="text" id="search_address" name="search_address" class="form-control" placeholder="住所" value="{{ filters.search_address }}">
+                </div>
+
+                <div class="col-12 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2"><i class="bi bi-search"></i> 絞り込み</button>
+                    <a href="{{ url_for('admin_index') }}" class="btn btn-secondary"><i class="bi bi-x-lg"></i> リセット</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# ===== テスト結果表示エリア ===== #}
+<div id="testResultsContainer" class="card bg-dark border-secondary mb-4" style="display: none;">
+    <div class="card-body">
+        {# JavaScriptによって内容がここに挿入されます #}
+    </div>
+</div>
+
+
+{# ===== サロン一覧テーブル ===== #}
+<form method="POST" action="{{ url_for('admin_bulk_action') }}" id="bulkActionForm">
+    <div class="d-flex mb-3">
+        <select name="action" class="form-select" style="width: 200px;">
+            <option value="">一括操作を選択...</option>
+            <!-- ▼▼▼ テスト用の選択肢を追加 ▼▼▼ -->
+            <option value="test_hpb_details">HPB詳細をテスト取得</option>
+            <option value="get_jobs">求人情報を取得</option>
+            <option value="get_hpb_details">HPB追加データを取得</option>
+            <option value="delete">選択した項目を削除</option>
+        </select>
+        <button type="submit" class="btn btn-warning ms-2">適用</button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-dark table-striped table-hover">
+            <thead>
+                <tr>
+                    <th><input class="form-check-input" type="checkbox" id="selectAll"></th>
+                    <th>ID ...</th>
+                    <th>サロン名</th>
+                    <th>住所</th>
+                    <th>カテゴリ</th>
+                    <th class="text-center">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for salon in salons %}
+                <tr>
+                    <td><input class="form-check-input" type="checkbox" name="selected_ids" value="{{ salon.id }}"></td>
+                <td>{{ salon.id }}</td>
+                <td>
+                    <a href="{{ url_for('salon_detail', salon_id=salon.id) }}" target="_blank">
+                        {{ salon.name or salon.name_hpb or '(名称未登録)' }}
+                    </a>
+                </td>
+                <td class="text-break" style="max-width: 300px;">{{ salon.address or 'N/A' }}</td>
+                <td>
+                    {% for category in salon.categories %}
+                        <span class="badge bg-secondary fw-normal">{{ category.name }}</span>
+                    {% endfor %}
+                </td>
+                <td class="text-center">
+                    <div class="btn-group">
+                        <a href="{{ url_for('edit_salon', salon_id=salon.id) }}" class="btn btn-sm btn-outline-light" data-bs-toggle="tooltip" data-bs-title="編集">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="{{ url_for('delete_salon', salon_id=salon.id) }}" method="POST" class="d-inline" onsubmit="return confirm('本当にこのサロンを削除しますか？');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" data-bs-title="削除">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        <a href="{{ url_for('scrape_jobs_for_salon', salon_id=salon.id) }}" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" data-bs-title="求人取得">
+                            <i class="bi bi-briefcase"></i>
+                        </a>
+                    </div>
+                </td>                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">条件に一致するサロンはありません。</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+{# ===== ページネーション ===== #}
+<div class="d-flex justify-content-center mt-4">
+    {% if pagination %}
+<nav>
+    <ul class="pagination">
+        {# --- 前へ --- #}
+        {% if pagination.has_prev %}
+            {% set prev_args = request.args.to_dict() %}
+            {% set _ = prev_args.update({'page': pagination.prev_num}) %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('admin_index', **prev_args) }}">«</a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">«</span></li>
+        {% endif %}
+
+        {# --- ページ番号 --- #}
+        {% for page_num in pagination.iter_pages() %}
+            {% if page_num %}
+                {% if page_num != pagination.page %}
+                    {% set page_args = request.args.to_dict() %}
+                    {% set _ = page_args.update({'page': page_num}) %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('admin_index', **page_args) }}">{{ page_num }}</a></li>
+                {% else %}
+                    <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                {% endif %}
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+
+        {# --- 次へ --- #}
+        {% if pagination.has_next %}
+            {% set next_args = request.args.to_dict() %}
+            {% set _ = next_args.update({'page': pagination.next_num}) %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('admin_index', **next_args) }}">»</a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">»</span></li>
+        {% endif %}
+    </ul>
+</nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- 一括選択チェックボックスのロジック ---
+    const selectAllCheckbox = document.getElementById('selectAll');
+    if(selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function(e) {
+            const checkboxes = document.querySelectorAll('input[name="selected_ids"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = e.target.checked;
+            });
+        });
+    }
+
+    // --- 一括操作フォームのロジック ---
+    const bulkActionForm = document.getElementById('bulkActionForm');
+    if(bulkActionForm) {
+        bulkActionForm.addEventListener('submit', async function(e) {
+            const action = this.elements['action'].value;
+
+            // 「削除」が選択された場合は、確認ダイアログを表示
+            if (action === 'delete') {
+                if (!confirm('選択したサロンを本当に削除しますか？この操作は元に戻せません。')) {
+                    e.preventDefault(); // 送信を中止
+                }
+                return; // 確認OKなら、そのままフォームを送信
+            }
+            
+            // 「HPB詳細をテスト取得」が選択された場合の特別処理
+            if (action === 'test_hpb_details') {
+                e.preventDefault(); // 通常のフォーム送信を中止
+
+                const selectedCheckboxes = document.querySelectorAll('input[name="selected_ids"]:checked');
+                const salonIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+                if (salonIds.length === 0) {
+                    alert('テスト対象のサロンを1件以上選択してください。');
+                    return;
+                }
+                
+                if (salonIds.length > 5) {
+                    if(!confirm(`選択件数が5件を超えています(${salonIds.length}件)。処理に時間がかかる可能性がありますが、よろしいですか？`)){
+                        return;
+                    }
+                }
+
+                const resultsContainer = document.querySelector('#testResultsContainer .card-body');
+                resultsContainer.parentElement.style.display = 'block';
+                resultsContainer.innerHTML = '<h4>HPB詳細取得テスト結果</h4><p class="text-light">テストを実行中... (1件あたり約10秒かかります)</p><ul class="list-group mt-2"></ul>';
+                const resultsList = resultsContainer.querySelector('ul');
+
+                // 選択されたサロンを1件ずつ非同期で処理
+                for (const salonId of salonIds) {
+                    try {
+                        const response = await fetch("{{ url_for('test_hpb_details') }}", {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ salon_id: salonId })
+                        });
+
+                        // サーバーからHTMLエラーが返ってきた場合も考慮
+                        if (!response.ok) {
+                            throw new Error(`サーバーエラー: ${response.status}`);
+                        }
+
+                        const result = await response.json();
+                        
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item bg-dark text-light border-secondary';
+                        
+                        let detailsHtml = '';
+                        if (result.status === 'Success') {
+                            li.classList.add('border-success');
+                            const d = result.details;
+                            detailsHtml = `
+                                <ul class="list-unstyled mb-0 small">
+                                    <li><strong>住所:</strong> ${d.address || '<span class="text-danger">取得失敗</span>'}</li>
+                                    <li><strong>評価:</strong> ${d.rating !== null ? d.rating : '<span class="text-danger">取得失敗</span>'}</li>
+                                    <li><strong>口コミ数:</strong> ${d.review_count !== null ? d.review_count : '<span class="text-danger">取得失敗</span>'}</li>
+                                </ul>`;
+                        } else {
+                             li.classList.add('border-danger');
+                             detailsHtml = `<p class="mb-0 small text-warning">理由: ${result.status}</p>`;
+                        }
+                        li.innerHTML = `<h6>${result.salon_name} (<span class="${result.status === 'Success' ? 'text-success' : 'text-danger'}">${result.status}</span>)</h6> ${detailsHtml}`;
+                        resultsList.appendChild(li);
+
+                    } catch (error) {
+                        console.error('Fetch error:', error);
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item bg-dark text-light border-secondary border-danger';
+                        li.innerHTML = `<h6>ID: ${salonId} の処理中にエラー</h6><p class="mb-0 small">${error.message}</p>`;
+                        resultsList.appendChild(li);
+                    }
+                }
+                
+                const p = resultsContainer.querySelector('p');
+                if (p) {
+                    p.textContent = 'テストが完了しました。';
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

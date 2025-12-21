@@ -1,0 +1,34 @@
+<!-- templates/admin/scrape_salons.html -->
+{% extends "admin/base.html" %}
+
+{% block title %}HPBからサロンを一括登録{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">ホットペッパービューティーからサロンを一括登録</h1>
+    <p>
+        ホットペッパービューティーのエリア別検索結果ページのURL（例: <code>https://beauty.hotpepper.jp/pre13/</code>）を入力してください。<br>
+        「次へ」をたどり、全ページのサロン情報を自動で取得し、未登録のサロンのみをデータベースに追加します。
+    </p>
+
+    <div class="card">
+        <div class="card-body">
+<form method="POST">
+    <div class="mb-3">
+        <label for="category_id" class="form-label">対象カテゴリ</label>
+        <select class="form-select" id="category_id" name="category_id" required>
+            <option value="" disabled selected>カテゴリを選択してください</option>
+            {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="url" class="form-label">検索結果ページのURL</label>
+        <input type="url" class="form-control" id="url" name="url" placeholder="https://beauty.hotpepper.jp/pre13/" required>
+    </div>
+    <button type="submit" class="btn btn-primary">このエリアのサロン取得を開始</button>
+</form>        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+
+{% block title %}サロン情報CSVアップロード{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h1>サロン情報CSVアップロード</h1>
+        <p class="lead">CSVファイルを使って、サロン情報を一括で登録・更新します。</p>
+
+        <div class="card bg-dark border-secondary mt-4">
+            <div class="card-body">
+                <h5 class="card-title">CSVファイルを選択</h5>
+                <form method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <input class="form-control" type="file" name="csv_file" accept=".csv" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> アップロードして登録・更新
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card bg-dark border-secondary mt-4">
+            <div class="card-header">
+                CSVファイルの形式について
+            </div>
+            <div class="card-body">
+                <p>CSVファイルは以下の列を含む必要があります（順序は問いません）。</p>
+                <ul>
+                    <li><strong>place_id</strong>: (必須) Google MapのPlace IDです。このIDをキーにして、既存のサロン情報を更新します。存在しない場合は新規登録されます。</li>
+                    <li><strong>name</strong>: サロン名</li>
+                    <li><strong>address</strong>: 住所</li>
+                    <li><strong>cid</strong>: CID</li>
+                    <li><strong>official_website</strong>: 公式サイトURL</li>
+                    <li><strong>contact_page_url</strong>: 問い合わせページURL</li>
+                    <li><strong>email_address</strong>: メールアドレス</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

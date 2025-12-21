@@ -1,0 +1,83 @@
+{% extends "admin/base.html" %}
+
+{% block title %}サロン情報{% if salon %}編集{% else %}追加{% endif %}{% endblock %}
+
+{% block content %}
+<h1>サロン情報{% if salon %}編集{% else %}追加{% endif %}</h1>
+
+<form method="post">
+    <table class="table table-dark table-bordered table-sm">
+        <tbody>
+    <tr>
+        <th scope="row" style="width: 25%;">
+            {# ラベルを分かりやすく変更 #}
+            <label for="name" class="form-label">サロン名 (Google Map)</label>
+        </th>
+        <td>
+            <input type="text" class="form-control" id="name" name="name" value="{{ salon.name if salon else '' }}">
+        </td>
+    </tr>
+
+    {# ▼▼▼▼▼ このブロックを新しく追加 ▼▼▼▼▼ #}
+    <tr>
+        <th scope="row">
+            <label for="name_hpb" class="form-label">サロン名 (HPB)</label>
+        </th>
+        <td>
+            <input type="text" class="form-control" id="name_hpb" name="name_hpb" value="{{ salon.name_hpb if salon else '' }}">
+        </td>
+    </tr>
+    {# ▲▲▲▲▲ ここまで ▲▲▲▲▲ #}            <tr>
+                <th scope="row"><label class="form-label">カテゴリ</label></th>
+                <td>
+                    <div class="p-2">
+                        {% for category in categories %}
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="categories" value="{{ category.id }}" id="category{{ category.id }}"
+                                   {% if salon and category in salon.categories %}checked{% endif %}>
+                            <label class="form-check-label" for="category{{ category.id }}">{{ category.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="address" class="form-label">住所</label></th>
+                <td><input type="text" class="form-control" id="address" name="address" value="{{ salon.address if salon else '' }}"></td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="place_id" class="form-label">Place ID</label></th>
+                <td><input type="text" class="form-control" id="place_id" name="place_id" value="{{ salon.place_id if salon else '' }}"></td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="cid" class="form-label">CID</label></th>
+                <td><input type="text" class="form-control" id="cid" name="cid" value="{{ salon.cid if salon else '' }}"></td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="website_url" class="form-label">公式サイトURL</label></th>
+                <td><input type="url" class="form-control" id="website_url" name="website_url" value="{{ salon.website_url if salon else '' }}"></td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="inquiry_url" class="form-label">問い合わせページURL</label></th>
+                <td><input type="url" class="form-control" id="inquiry_url" name="inquiry_url" value="{{ salon.inquiry_url if salon else '' }}"></td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="email" class="form-label">メールアドレス</label></th>
+                <td><input type="email" class="form-control" id="email" name="email" value="{{ salon.email if salon else '' }}"></td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="hotpepper_url" class="form-label">ホットペッパーURL</label></th>
+                <td><input type="url" class="form-control" id="hotpepper_url" name="hotpepper_url" value="{{ salon.hotpepper_url or '' }}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> 保存</button>
+        <a href="{{ url_for('admin_index') }}" class="btn btn-secondary">キャンセル</a>
+        {% if salon %}
+            <a href="{{ url_for('salon_detail', salon_id=salon.id) }}" class="btn btn-outline-light" target="_blank">公開ページを確認</a>
+        {% endif %}
+    </div>
+</form>
+{% endblock %}

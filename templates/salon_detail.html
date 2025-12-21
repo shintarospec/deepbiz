@@ -1,0 +1,155 @@
+{% extends "layout.html" %}
+{% block title %}{{ salon.name or salon.name_hpb }} - 詳細情報 - Salondb{% endblock %}
+
+{% block content %}
+
+<h1>{{ salon.name or salon.name_hpb }}</h1>
+
+{% if salon.name and salon.name_hpb and salon.name != salon.name_hpb %}
+  <p class="text-muted fs-5">
+    <small>ホットペッパー名: {{ salon.name_hpb }}</small>
+  </p>
+{% endif %}
+
+<div class="ratings-container">
+    {# --- Google評価 --- #}
+    {% set google_summary = salon.review_summaries|selectattr('source_name', 'equalto', 'Google')|first %}
+    {% if google_summary and google_summary.rating %}
+    <div class="rating-display" title="Googleの評価 {{ '%.1f'|format(google_summary.rating) }}">
+        <div class="rating-stars">
+            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+            <div class="rating-stars-filled" style="width: {{ (google_summary.rating / 5) * 100 }}%;">
+                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+            </div>
+        </div>
+        <span class="rating-score">{{ "%.1f"|format(google_summary.rating) }}</span>
+        <span class="review-count">({{ google_summary.count or 'N/A' }})</span>
+        <span class="source-badge google-badge">Google</span>
+    </div>
+    {% endif %}
+
+    {# --- Hot Pepper評価 --- #}
+    {% set hpb_summary = salon.review_summaries|selectattr('source_name', 'equalto', 'Hot Pepper')|first %}
+    {% if hpb_summary and hpb_summary.rating %}
+    <div class="rating-display" title="Hot Pepperの評価 {{ '%.1f'|format(hpb_summary.rating) }}">
+        <div class="rating-stars">
+            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+            <div class="rating-stars-filled" style="width: {{ (hpb_summary.rating / 5) * 100 }}%;">
+                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+            </div>
+        </div>
+        <span class="rating-score">{{ "%.1f"|format(hpb_summary.rating) }}</span>
+        <span class="review-count">({{ hpb_summary.count or 'N/A' }})</span>
+        <span class="source-badge hpb-badge">Hot Pepper</span>
+    </div>
+    {% endif %}
+</div>
+
+{% if salon.hotpepper_url %}
+  <div class="mt-4 text-center">
+    <a href="{{ salon.hotpepper_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-danger btn-lg hpb-button">
+      Hot Papper Beauty »
+    </a>
+  </div>
+{% endif %}
+
+    <div class="map-container">
+        <iframe
+        src="https://www.google.com/maps/embed/v1/place?key={{ api_key }}&q=place_id:{{ salon.place_id }}"
+        width="100%"
+        height="100%"
+        style="border:0;"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+
+    <table class="info-table">
+      <tr><th>住所</th><td>{{ salon.address or '未登録' }}</td></tr>
+      <tr>
+        <th>カテゴリ</th>
+        <td>
+          {% if salon.categories %}
+            {% for category in salon.categories %}
+              <span class="category-tag">{{ category.name }}</span>
+            {% endfor %}
+          {% else %}
+            未登録
+          {% endif %}
+        </td>
+      </tr>
+      <tr><th>Place ID</th><td>{{ salon.place_id or '未登録' }}</td></tr>
+      <tr><th>CID (Googleマップリンク)</th><td>{% if salon.cid %}<a href="https://maps.google.com/?cid={{ salon.cid }}" target="_blank" rel="noopener noreferrer">{{ salon.cid }} (マップで開く)</a>{% else %}未登録{% endif %}</td></tr>
+      <tr><th>公式サイト</th><td>{% if salon.website_url %}<a href="{{ salon.website_url }}" target="_blank" rel="noopener noreferrer">{{ salon.website_url }}</a>{% else %}未登録{% endif %}</td></tr>
+      <tr><th>問い合わせページ</th><td>{% if salon.inquiry_url %}<a href="{{ salon.inquiry_url }}" target="_blank" rel="noopener noreferrer">{{ salon.inquiry_url }}</a>{% else %}未登録{% endif %}</td></tr>
+      <tr><th>メールアドレス</th><td>{{ salon.email or '未登録' }}</td></tr>
+    </table>
+
+<h2>クーポン情報</h2>
+{% if salon.coupons %}
+  <div class="coupon-list">
+    {% for coupon in salon.coupons %}
+      <div class="coupon-card">
+        <p class="coupon-title">{{ coupon.title }}</p>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>このサロンのクーポン情報は見つかりませんでした。</p>
+{% endif %}
+{% if salon.hotpepper_url %}
+  <div class="mt-3">
+    <a href="{{ salon.hotpepper_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-danger hpb-button">
+      Hot Papper Beauty »
+    </a>
+  </div>
+{% endif %}
+
+{% if jobs %}
+  <div class="card mt-4">
+    <div class="card-header">
+      <h3 class="mb-0">求人情報</h3>
+    </div>
+    <div class="list-group list-group-flush">
+      {% for job in jobs %}
+        <a href="{{ job.source_url }}" target="_blank" rel="noopener noreferrer" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+          {{ job.title }}
+          <span class="badge bg-primary rounded-pill">詳細を見る</span>
+        </a>
+      {% endfor %}
+    </div>
+    <div class="card-footer text-center">
+      <a href="https://relax-job.com/search?keywords={{ salon.name | urlencode }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm">
+        「{{ salon.name }}」の求人をリジョブで もっと見る
+      </a>
+    </div>
+  </div>
+{% endif %}
+
+<h2>最新の口コミ (Google)</h2>
+{% if salon.latest_google_review %}
+  <div class="review-card">
+    <p class="review-author">
+        {{ salon.latest_google_review.author_name }} 
+        <span class="review-rating">
+            {% set rating = salon.latest_google_review.rating | int %}
+            {% for i in range(rating) %}★{% endfor %}{% for i in range(5 - rating) %}☆{% endfor %}
+        </span>
+    </p>
+    <p class="review-text">{{ salon.latest_google_review.text }}</p>
+  </div>
+{% else %}
+    <p>このサロンのGoogle口コミはまだありません。</p>
+{% endif %}
+
+{% if salon.place_id %}
+  <a href="https://search.google.com/local/reviews?placeid={{ salon.place_id }}" target="_blank" rel="noopener noreferrer">すべての口コミを見る »</a>
+{% endif %}
+
+<div style="margin-top: 2rem;">
+    <a class="button" href="{{ url_for('salon_search') }}">検索ページに戻る</a>
+</div>
+
+{% endblock %}
+

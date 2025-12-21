@@ -1,0 +1,65 @@
+/* static/css/admin.css */
+
+body {
+  font-size: 0.8rem;
+}
+
+.table-sm th,
+.table-sm td {
+  padding: 0.25rem 0.5rem;
+}
+
+.table-admin tbody td {
+  vertical-align: top !important;
+}
+
+/* ▼▼▼ このクラスを追加（復活） ▼▼▼ */
+.actions-nowrap {
+  white-space: nowrap;
+}
+/* static/css/admin.css */
+
+/* ... (既存の body, table-sm, table-admin のスタイル) ... */
+
+
+/* ▼▼▼ このブロックを末尾に追加 ▼▼▼ */
+
+/* フォーム入力欄のスタイル上書き */
+.form-control,
+.form-select {
+  background-color: #495057; /* Bootstrapのダークグレー系の色 */
+  color: #fff;              /* 文字色を白に */
+  border-color: #6c757d;     /* 境界線の色 */
+}
+
+/* フォーム入力欄がフォーカスされた時のスタイル */
+.form-control:focus,
+.form-select:focus {
+  background-color: #495057;
+  color: #fff;
+  border-color: #86b7fe; /* Bootstrapのフォーカス色 */
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* チェックボックスのスタイルも合わせる */
+.form-check-input {
+   background-color: #495057;
+   border-color: #6c757d;
+}
+.form-check-input:checked {
+  background-color: #0d6efd; /* チェック時の色（Bootstrapの青） */
+  border-color: #0d6efd;
+}
+
+/*
+管理画面のテーブル内のリンクを目立たせるためのスタイル
+*/
+.table a {
+    color: #a3e635; /* 黄緑色 (Tailwind CSSのlime-400) */
+    text-decoration: none; /* 下線を消す */
+}
+
+.table a:hover {
+    color: #bef264; /* ホバー時にもう少し明るい黄緑色に */
+    text-decoration: underline; /* ホバー時に下線を表示 */
+}
