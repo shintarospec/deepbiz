@@ -1,118 +1,114 @@
 {% extends "layout.html" %}
-{% block title %}サロン検索 - Salondb{% endblock %}
-
-{% block styles %}
-  <style>
- </style>
-{% endblock %}
+{% block title %}美容クリニック検索（東京23区） - Salondb{% endblock %}
 
 {% block content %}
-<div id="salonSearchContainer">
-    <h1>サロン検索</h1>
+<div class="space-y-6">
+    <h1 class="text-3xl font-bold text-gray-900">美容クリニック検索（東京23区）</h1>
 
-    <form class="search-form" method="get" action="{{ url_for('salon_search') }}">
-      <div class="search-form-row">
-        <div class="search-form-item">
-          <div class="custom-select-wrapper">
-            <select name="area" class="form-select custom-select-override">
-                <option value="">すべてのエリア</option>
-                {% for area in area_options %}
-                    <option value="{{ area }}" {% if area == selected_area %}selected{% endif %}>{{ area }}</option>
-                {% endfor %}
-            </select>
-          </div>
+    <form class="bg-white rounded-lg shadow-sm p-6 space-y-4" method="get" action="{{ url_for('salon_search') }}">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <select name="area" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="">すべてのエリア</option>
+            {% for area in area_options %}
+              <option value="{{ area }}" {% if area == selected_area %}selected{% endif %}>{{ area }}</option>
+            {% endfor %}
+          </select>
         </div>
-        <div class="search-form-item">
-          <div class="custom-select-wrapper">
-              <select name="category" class="form-select custom-select-override">
-                  <option value="">すべてのカテゴリ</option>
-                  {% for cat in all_categories %}
-                      <option value="{{ cat.name }}" {% if cat.name == selected_category %}selected{% endif %}>{{ cat.name }}</option>
-                  {% endfor %}
-              </select>
-            </div>
+        <div>
+          <select name="category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="">すべてのカテゴリ</option>
+            {% for cat in all_categories %}
+              <option value="{{ cat.name }}" {% if cat.name == selected_category %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+          </select>
         </div>
-        <div class="search-form-item">
-            <input type="text" name="keyword" class="form-control" value="{{ keyword or '' }}" placeholder="キーワード">
+        <div>
+          <input type="text" name="keyword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="{{ keyword or '' }}" placeholder="キーワード">
         </div>
-        <div class="search-form-item search-form-button">
-            <button type="submit" class="btn btn-primary w-100">検索</button>
+        <div>
+          <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">検索</button>
         </div>
       </div>
 
-      <div class="search-form-row search-form-sort">
-        <div class="search-form-item">
-            <div class="custom-select-wrapper">
-              <select name="sort" onchange="this.form.submit()" class="form-select custom-select-override">
-                  <option value="name" {% if sort_by == 'name' %}selected{% endif %}>標準（名前順）</option>
-                  <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>評価順</option>
-              </select>
-            </div>
-        </div>
+      <div class="flex justify-end">
+        <select name="sort" onchange="this.form.submit()" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="name" {% if sort_by == 'name' %}selected{% endif %}>標準（名前順）</option>
+          <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>評価順</option>
+        </select>
       </div>
     </form>
 
-    <h2>検索結果</h2>
-    {% for salon in salons %}
-      <div class="salon-card">
-        {# ▼▼▼▼▼ 名前の表示を修正 ▼▼▼▼▼ #}
-        <h3><a href="{{ url_for('salon_detail', salon_id=salon.id) }}">{{ salon.name or salon.name_hpb or '(名称未登録)' }}</a></h3>
-        <p class="salon-address">{{ salon.address }}</p>
+    <h2 class="text-2xl font-semibold text-gray-900">検索結果</h2>
+    
+    <div class="space-y-4">
+      {% for salon in salons %}
+        <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+          <h2 class="text-xl font-bold text-gray-900 mb-2">
+            <a href="{{ url_for('salon_detail', salon_id=salon.id) }}" class="hover:text-blue-600 transition-colors">
+              {{ salon.name or salon.name_hpb or '(名称未登録)' }}
+            </a>
+          </h2>
+          <p class="text-gray-600 mb-3">{{ salon.address }}</p>
 
-        {# ▼▼▼▼▼ GoogleとHPBの評価を両方表示するように改修 ▼▼▼▼▼ #}
-        <div class="ratings-container">
-            
-            {# --- Google評価 --- #}
+          <div class="flex flex-wrap gap-4">
             {% set google_summary = salon.review_summaries|selectattr('source_name', 'equalto', 'Google')|first %}
             {% if google_summary and google_summary.rating %}
-            <div class="rating-display" title="Googleの評価 {{ '%.1f'|format(google_summary.rating) }}">
-                <div class="rating-stars">
-                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                    <div class="rating-stars-filled" style="width: {{ (google_summary.rating / 5) * 100 }}%;">
-                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                    </div>
-                </div>
-                <span class="rating-score">{{ "%.1f"|format(google_summary.rating) }}</span>
-                <span class="review-count">({{ google_summary.count or 'N/A' }})</span>
-                <span class="source-badge google-badge">Google</span>
+            <div class="flex items-center gap-2" title="Googleの評価 {{ '%.1f'|format(google_summary.rating) }}">
+              <div class="flex text-yellow-400">
+                {% for i in range(5) %}
+                  <i class="bi bi-star-fill{% if i >= google_summary.rating %} text-gray-300{% endif %}"></i>
+                {% endfor %}
+              </div>
+              <span class="font-semibold text-gray-900">{{ "%.1f"|format(google_summary.rating) }}</span>
+              <span class="text-gray-600">({{ google_summary.count or 'N/A' }})</span>
+              <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">Google</span>
             </div>
             {% endif %}
 
-            {# --- Hot Pepper評価 --- #}
             {% set hpb_summary = salon.review_summaries|selectattr('source_name', 'equalto', 'Hot Pepper')|first %}
             {% if hpb_summary and hpb_summary.rating %}
-            <div class="rating-display" title="Hot Pepperの評価 {{ '%.1f'|format(hpb_summary.rating) }}">
-                <div class="rating-stars">
-                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                    <div class="rating-stars-filled" style="width: {{ (hpb_summary.rating / 5) * 100 }}%;">
-                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                    </div>
-                </div>
-                <span class="rating-score">{{ "%.1f"|format(hpb_summary.rating) }}</span>
-                <span class="review-count">({{ hpb_summary.count or 'N/A' }})</span>
-                <span class="source-badge hpb-badge">Hot Pepper</span>
+            <div class="flex items-center gap-2" title="Hot Pepperの評価 {{ '%.1f'|format(hpb_summary.rating) }}">
+              <div class="flex text-yellow-400">
+                {% for i in range(5) %}
+                  <i class="bi bi-star-fill{% if i >= hpb_summary.rating %} text-gray-300{% endif %}"></i>
+                {% endfor %}
+              </div>
+              <span class="font-semibold text-gray-900">{{ "%.1f"|format(hpb_summary.rating) }}</span>
+              <span class="text-gray-600">({{ hpb_summary.count or 'N/A' }})</span>
+              <span class="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded">Hot Pepper</span>
             </div>
             {% endif %}
-
+          </div>
         </div>
-      </div>
-    {% else %}
-      <p>該当するサロンが見つかりませんでした。</p>
-    {% endfor %}
+      {% else %}
+        <p class="text-gray-600 text-center py-8">該当するサロンが見つかりませんでした。</p>
+      {% endfor %}
+    </div>
 
-    <div class="pagination">
-      <div class="pagination-desktop">
-        {% if pagination.has_prev %}<a href="{{ url_for('salon_search', page=pagination.prev_num, keyword=keyword, area=selected_area, category=selected_category.name, sort=sort_by) }}">&laquo; 前へ</a>{% endif %}
-        {% for p in pagination.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=3) %}
-            {% if p %}{% if p == pagination.page %}<a class="active" href="#">{{ p }}</a>{% else %}<a href="{{ url_for('salon_search', page=p, keyword=keyword, area=selected_area, category=selected_category, sort=sort_by) }}">{{ p }}</a>{% endif %}{% else %}<span class="ellipsis">…</span>{% endif %}
-        {% endfor %}
-        {% if pagination.has_next %}<a href="{{ url_for('salon_search', page=pagination.next_num, keyword=keyword, area=selected_area, category=selected_category.name, sort=by) }}">次へ &raquo;</a>{% endif %}
-      </div>
-      <div class="pagination-mobile">
-        {% if pagination.has_prev %}<a href="{{ url_for('salon_search', page=pagination.prev_num, keyword=keyword, area=selected_area, category=selected_category.name, sort=sort_by) }}">&laquo; 前のページ</a>{% endif %}
-        <span class="page-indicator">ページ {{ pagination.page }} / {{ pagination.pages }}</span>
-        {% if pagination.has_next %}<a href="{{ url_for('salon_search', page=pagination.next_num, keyword=keyword, area=selected_area, category=selected_category.name, sort=sort_by) }}">次のページ &raquo;</a>{% endif %}
-      </div>
+    <div class="flex justify-center gap-2 mt-8">
+      {% if pagination.has_prev %}
+        <a href="{{ url_for('salon_search', page=pagination.prev_num, keyword=keyword, area=selected_area, category=selected_category, sort=sort_by) }}" 
+           class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">&laquo; 前へ</a>
+      {% endif %}
+      
+      {% for p in pagination.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=3) %}
+        {% if p %}
+          {% if p == pagination.page %}
+            <span class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">{{ p }}</span>
+          {% else %}
+            <a href="{{ url_for('salon_search', page=p, keyword=keyword, area=selected_area, category=selected_category, sort=sort_by) }}" 
+               class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">{{ p }}</a>
+          {% endif %}
+        {% else %}
+          <span class="px-2 text-gray-400">…</span>
+        {% endif %}
+      {% endfor %}
+      
+      {% if pagination.has_next %}
+        <a href="{{ url_for('salon_search', page=pagination.next_num, keyword=keyword, area=selected_area, category=selected_category, sort=sort_by) }}" 
+           class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">次へ &raquo;</a>
+      {% endif %}
     </div>
 
 </div>
