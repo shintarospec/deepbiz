@@ -18,6 +18,7 @@ class Salon(db.Model):
     website_url = db.Column(db.String(255), nullable=True)
     inquiry_url = db.Column(db.String(255), nullable=True)
     email = db.Column(db.String(255), nullable=True)
+    phone = db.Column(db.String(255), nullable=True)
     hotpepper_url = db.Column(db.String(255), nullable=True, unique=True)
     categories = db.relationship('Category', secondary=salon_categories, lazy='subquery', backref=db.backref('salons', lazy=True))
     review_summaries = db.relationship('ReviewSummary', backref='salon', lazy=True, cascade="all, delete-orphan")

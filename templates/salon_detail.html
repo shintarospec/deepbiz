@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}{{ salon.name or salon.name_hpb }} - 詳細情報 - Salondb{% endblock %}
+{% block title %}{{ salon.name or salon.name_hpb }} - 詳細情報 - DeepBiz{% endblock %}
 
 {% block content %}
 
@@ -127,6 +127,10 @@
         <tr>
           <th class="px-6 py-4 bg-gray-50 text-left text-sm font-medium text-gray-700">メールアドレス</th>
           <td class="px-6 py-4 text-sm text-gray-900">{{ salon.email or '未登録' }}</td>
+        </tr>
+        <tr>
+          <th class="px-6 py-4 bg-gray-50 text-left text-sm font-medium text-gray-700">電話番号</th>
+          <td class="px-6 py-4 text-sm text-gray-900">{{ salon.phone or '未登録' }}</td>
         </tr>
       </tbody>
     </table>
