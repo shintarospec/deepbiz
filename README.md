@@ -115,18 +115,28 @@ ScrapingTask: タスクキュー（GMAP/HPBタイプ）
 
 ## 環境変数
 
+⚠️ **セキュリティ重要**: APIキーは絶対にGitにコミットしないでください！
+
+### セットアップ手順
+
+1. `.env.example`をコピーして`.env`を作成：
+```bash
+cp .env.example .env
+```
+
+2. `.env`ファイルに実際のAPIキーを記載：
 ```bash
 GOOGLE_MAPS_API_KEY=<your-google-maps-api-key>
 GEMINI_API_KEY=<your-gemini-api-key>
-DEEPBIZ_API_KEY=<your-deepbiz-api-key>  # 企業分析API認証用
+DEEPBIZ_API_KEY=<your-deepbiz-api-key>
 ```
 
-または`.env`ファイルに記載：
-```
-GOOGLE_MAPS_API_KEY=xxx
-GEMINI_API_KEY=xxx
-DEEPBIZ_API_KEY=xxx
-```
+3. APIキーの取得先：
+   - **Google Maps API**: https://console.cloud.google.com/apis/credentials
+   - **Gemini AI API**: https://aistudio.google.com/app/apikey
+   - **DeepBiz API**: `openssl rand -hex 32` で生成
+
+**注意**: `.env`ファイルは`.gitignore`に含まれており、Gitにコミットされません。
 
 ## 開発環境セットアップ
 
