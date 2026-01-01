@@ -35,7 +35,8 @@ def scrape_contact_info(website_url, driver):
     result = {'contact_page_url': None, 'emails': [], 'phones': []}
     
     try:
-        # Step 1: トップページをロード
+        # Step 1: トップページをロード（タイムアウト30秒）
+        driver.set_page_load_timeout(30)
         driver.get(website_url)
         time.sleep(3)
         
@@ -131,12 +132,21 @@ def enrich_contacts(limit=None):
         
         try:
             driver = get_stealth_driver()
+            driver_restarts = 0
             
             for i, salon in enumerate(salons, 1):
                 print(f"\n[{i}/{total}] {salon.name}")
                 print(f"  公式サイト: {salon.website_url}")
                 
                 try:
+                    # 30件ごとにブラウザを再起動（メモリリーク対策）
+                    if i > 1 and i % 30 == 0:
+                        print(f"  → ブラウザ再起動中...（{driver_restarts + 1}回目）")
+                        driver.quit()
+                        time.sleep(3)
+                        driver = get_stealth_driver()
+                        driver_restarts += 1
+                    
                     contact_info = scrape_contact_info(salon.website_url, driver)
                     
                     # DBに保存
@@ -161,9 +171,19 @@ def enrich_contacts(limit=None):
                     time.sleep(3)  # サーバー負荷対策（重要）
                     
                 except Exception as e:
-                    print(f"  処理エラー: {e}")
+                    print(f"    エラー: {type(e).__name__}: {str(e)[:100]}")
                     failed += 1
                     db.session.rollback()
+                    
+                    # エラー時にブラウザ再起動を試みる
+                    try:
+                        driver.quit()
+                        time.sleep(3)
+                        driver = get_stealth_driver()
+                        print("    → エラー後ブラウザ再起動完了")
+                    except:
+                        pass
+                    
                     time.sleep(2)
                     continue
         

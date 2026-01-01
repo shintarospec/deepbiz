@@ -76,3 +76,20 @@ class ScrapingTask(db.Model):
     # ▼▼▼ ForeignKey制約を削除 ▼▼▼
     category_id = db.Column(db.Integer, nullable=False)
     last_run_at = db.Column(db.DateTime, nullable=True)
+
+class CompanyAnalysis(db.Model):
+    """企業Webサイト解析結果を保存するモデル（AI AutoForm連携用）"""
+    id = db.Column(db.Integer, primary_key=True)
+    company_domain = db.Column(db.String(255), unique=True, nullable=False, index=True)  # example.co.jp
+    company_url = db.Column(db.String(500), nullable=True)  # https://example.co.jp
+    business_description = db.Column(db.Text, nullable=True)  # 事業内容の要約（100-200文字）
+    industry = db.Column(db.String(100), nullable=True)  # IT・ソフトウェア
+    strengths = db.Column(db.JSON, nullable=True)  # ["強み1", "強み2", "強み3"]
+    target_customers = db.Column(db.Text, nullable=True)  # ターゲット顧客層
+    key_topics = db.Column(db.JSON, nullable=True)  # ["AI", "業務効率化", "DX"]
+    company_size = db.Column(db.String(50), nullable=True)  # 中堅企業、大企業など
+    pain_points = db.Column(db.JSON, nullable=True)  # ["リソース不足", "ITスキル不足"]
+    analyzed_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
+    expires_at = db.Column(db.DateTime, nullable=True, index=True)  # 90日後に設定
+    cache_hit_count = db.Column(db.Integer, nullable=False, default=0)  # 利用回数追跡
+    last_accessed_at = db.Column(db.DateTime, nullable=True)  # 最終アクセス日時

@@ -9,7 +9,7 @@ import urllib.parse
 import traceback
 from flask import Flask, render_template, request, redirect, url_for, flash, Response, jsonify
 from werkzeug.utils import secure_filename
-from models import db, Salon, Job, Category, Advertisement, Coupon, ScrapingTask, Area, salon_categories, ReviewSummary
+from models import db, Salon, Job, Category, Advertisement, Coupon, ScrapingTask, Area, salon_categories, ReviewSummary, CompanyAnalysis
 from flask_migrate import Migrate
 from datetime import datetime, timedelta
 from sqlalchemy import desc, nullslast, text, or_
@@ -49,6 +49,10 @@ if not os.path.exists(app.instance_path):
 db.init_app(app)
 migrate = Migrate(app, db)
 
+# API Blueprintの登録
+from api.company_analysis import api_bp
+app.register_blueprint(api_bp)
+
 
 # --- ヘルパー関数 ---
 def clean_data(value):
@@ -60,17 +64,33 @@ def clean_data(value):
 def get_stealth_driver(driver=None):
     if driver: return driver
     options = uc.ChromeOptions()
-    options.add_argument('--headless')
+    options.add_argument('--headless=new')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
-    options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36')
+    options.add_argument('--disable-blink-features=AutomationControlled')
+    options.add_argument('--window-size=1920,1080')
+    options.add_argument('--lang=ja')
+    options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.127 Safari/537.36')
+    
+    # WebDriver検出を回避するための設定
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
 
-    # webdriver-manager を使って、uc.Chrome を初期化
     driver = uc.Chrome(
-        service=ChromeService(ChromeDriverManager().install()), 
         options=options,
+        version_main=140,
         use_subprocess=True
     )
+    
+    # WebDriver特性を隠す
+    driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
+        'source': '''
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            });
+        '''
+    })
+    
     return driver
 
 # ... (Google Map ヘルパー関数群は変更なし) ...
@@ -996,6 +1016,7 @@ def scrape_salon_list(start_url, category_name, update_mode):
                     existing_salon = Salon.query.filter_by(hotpepper_url=full_url).first()
                     
                     if not existing_salon:
+                        # HPBのみのデータとして新規登録
                         new_salon = Salon(name_hpb=hpb_name, hotpepper_url=full_url)
                         db.session.add(new_salon)
                         new_salon.categories.append(category_obj)
