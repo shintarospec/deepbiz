@@ -1,0 +1,223 @@
+{% extends "admin/base.html" %}
+
+{% block title %}企業分析テスト{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>🧪 企業分析テスト</h2>
+    <p class="text-muted">Gemini AIを使用した企業分析機能のテストページです。</p>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>テスト実行</h5>
+        </div>
+        <div class="card-body">
+            <form id="analysisForm">
+                <div class="mb-3">
+                    <label for="companyUrl" class="form-label">企業ウェブサイトURL</label>
+                    <input type="url" 
+                           class="form-control" 
+                           id="companyUrl" 
+                           placeholder="https://www.example.co.jp/"
+                           value="https://www.cyberagent.co.jp/"
+                           required>
+                    <small class="form-text text-muted">分析したい企業のウェブサイトURLを入力してください。</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="sampleText" class="form-label">サンプルテキスト（オプション）</label>
+                    <textarea class="form-control" 
+                              id="sampleText" 
+                              rows="6"
+                              placeholder="企業情報のサンプルテキスト（空欄の場合はURLから自動スクレイピング）">サイバーエージェント株式会社
+インターネット広告事業
+メディア事業
+ゲーム事業
+投資育成事業
+
+企業理念：21世紀を代表する会社を創る
+ビジョン：新しい未来のテレビ「ABEMA」</textarea>
+                    <small class="form-text text-muted">テスト用のサンプルテキストを入力できます。空欄の場合はURLからスクレイピングします。</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="analyzeBtn">
+                    <span class="spinner-border spinner-border-sm d-none" id="spinner"></span>
+                    分析開始
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mt-4 d-none" id="resultCard">
+        <div class="card-header bg-success text-white">
+            <h5>✅ 分析結果</h5>
+        </div>
+        <div class="card-body">
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <div class="alert alert-danger mt-4 d-none" id="errorAlert">
+        <strong>エラー:</strong> <span id="errorMessage"></span>
+    </div>
+</div>
+
+<style>
+    .analysis-section {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-left: 4px solid #007bff;
+    }
+    .analysis-section h6 {
+        color: #007bff;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    .badge-custom {
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .cost-info {
+        background-color: #e7f3ff;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+    }
+</style>
+
+<script>
+document.getElementById('analysisForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const spinner = document.getElementById('spinner');
+    const resultCard = document.getElementById('resultCard');
+    const errorAlert = document.getElementById('errorAlert');
+    const resultContent = document.getElementById('resultContent');
+    
+    // UI初期化
+    analyzeBtn.disabled = true;
+    spinner.classList.remove('d-none');
+    resultCard.classList.add('d-none');
+    errorAlert.classList.add('d-none');
+    
+    const companyUrl = document.getElementById('companyUrl').value;
+    const sampleText = document.getElementById('sampleText').value.trim();
+    
+    try {
+        const response = await fetch('/admin/test_company_analysis_api', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                url: companyUrl,
+                sample_text: sampleText || null
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // 結果表示
+            const result = data.data;
+            let html = '';
+            
+            // 事業内容
+            html += `
+                <div class="analysis-section">
+                    <h6>📋 事業内容</h6>
+                    <p>${result.businessDescription || 'N/A'}</p>
+                </div>
+            `;
+            
+            // 業界
+            html += `
+                <div class="analysis-section">
+                    <h6>🏢 業界</h6>
+                    <p><strong>${result.industry || 'N/A'}</strong></p>
+                </div>
+            `;
+            
+            // 企業規模
+            html += `
+                <div class="analysis-section">
+                    <h6>📊 企業規模</h6>
+                    <p><strong>${result.companySize || 'N/A'}</strong></p>
+                </div>
+            `;
+            
+            // 強み
+            if (result.strengths && result.strengths.length > 0) {
+                html += `
+                    <div class="analysis-section">
+                        <h6>💪 強み</h6>
+                        <ul>
+                            ${result.strengths.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // ターゲット顧客
+            html += `
+                <div class="analysis-section">
+                    <h6>🎯 ターゲット顧客</h6>
+                    <p>${result.targetCustomers || 'N/A'}</p>
+                </div>
+            `;
+            
+            // キーワード
+            if (result.keyTopics && result.keyTopics.length > 0) {
+                html += `
+                    <div class="analysis-section">
+                        <h6>🔑 キーワード</h6>
+                        <div>
+                            ${result.keyTopics.map(k => `<span class="badge bg-primary badge-custom">${k}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 課題
+            if (result.painPoints && result.painPoints.length > 0) {
+                html += `
+                    <div class="analysis-section">
+                        <h6>❗ 推定される課題</h6>
+                        <ul>
+                            ${result.painPoints.map(p => `<li>${p}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // コスト情報
+            const tokensUsed = data.tokens_used;
+            const cost = data.cost;
+            html += `
+                <div class="cost-info">
+                    <h6>💰 コスト情報</h6>
+                    <p><strong>トークン使用量:</strong> ${tokensUsed.total} トークン (入力: ${tokensUsed.input}, 出力: ${tokensUsed.output})</p>
+                    <p><strong>実行コスト:</strong> ¥${cost.toFixed(6)} (約${(cost * 1000).toFixed(3)}円/1000社)</p>
+                </div>
+            `;
+            
+            resultContent.innerHTML = html;
+            resultCard.classList.remove('d-none');
+        } else {
+            // エラー表示
+            document.getElementById('errorMessage').textContent = data.error || '不明なエラーが発生しました';
+            errorAlert.classList.remove('d-none');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('errorMessage').textContent = error.message;
+        errorAlert.classList.remove('d-none');
+    } finally {
+        analyzeBtn.disabled = false;
+        spinner.classList.add('d-none');
+    }
+});
+</script>
+{% endblock %}

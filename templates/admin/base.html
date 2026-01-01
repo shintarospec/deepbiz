@@ -26,6 +26,7 @@
         <a class="nav-link {% if request.endpoint == 'manage_ads' %}active{% endif %}" href="{{ url_for('manage_ads') }}">広告管理</a>
         <a class="nav-link {% if request.endpoint == 'upload_salon_csv' %}active{% endif %}" href="{{ url_for('upload_salon_csv') }}">CSVアップロード</a>
         <a class="nav-link {% if request.endpoint == 'admin_scrape_salons' %}active{% endif %}" href="{{ url_for('admin_scrape_salons') }}">HPBから一括登録</a>
+        <a class="nav-link {% if request.endpoint == 'test_company_analysis' %}active{% endif %}" href="{{ url_for('test_company_analysis') }}">🧪 企業分析テスト</a>
         <a class="nav-link" href="{{ url_for('salon_search') }}" target="_blank">公開サイトを見る</a>
       </nav>
 

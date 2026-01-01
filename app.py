@@ -1194,3 +1194,91 @@ def test_hpb_details():
             result_item['status'] = 'No URL'
     
     return jsonify(result_item)
+
+
+@app.route('/admin/test_company_analysis')
+def test_company_analysis():
+    """企業分析テスト画面"""
+    return render_template('admin/test_company_analysis.html')
+
+
+@app.route('/admin/test_company_analysis_api', methods=['POST'])
+def test_company_analysis_api():
+    """
+    企業分析APIのテスト実行エンドポイント
+    
+    Request JSON:
+        {
+            "url": "https://www.example.co.jp/",
+            "sample_text": "企業情報テキスト" (オプション)
+        }
+    
+    Response JSON:
+        {
+            "success": true,
+            "data": {
+                "businessDescription": "...",
+                "industry": "...",
+                "strengths": [...],
+                "targetCustomers": "...",
+                "keyTopics": [...],
+                "companySize": "...",
+                "painPoints": [...]
+            },
+            "tokens_used": {
+                "input": 338,
+                "output": 268,
+                "total": 606
+            },
+            "cost": 0.000026,
+            "error": null
+        }
+    """
+    from services.gemini_analyzer import GeminiAnalyzer
+    from services.web_scraper import WebScraper
+    from dotenv import load_dotenv
+    
+    # .envファイルを読み込み
+    load_dotenv()
+    
+    try:
+        data = request.json
+        url = data.get('url')
+        sample_text = data.get('sample_text')
+        
+        if not url:
+            return jsonify({
+                'success': False,
+                'error': 'URLが指定されていません'
+            }), 400
+        
+        # サンプルテキストが指定されていない場合はスクレイピング
+        if not sample_text:
+            scraper = WebScraper()
+            company_content = scraper.scrape_company_website(url)
+            
+            if not company_content or len(company_content.strip()) < 50:
+                return jsonify({
+                    'success': False,
+                    'error': 'ウェブサイトからテキストを取得できませんでした'
+                }), 400
+        else:
+            company_content = sample_text
+        
+        # Gemini AIで分析
+        analyzer = GeminiAnalyzer()
+        result = analyzer.analyze_company(url, company_content)
+        
+        if result.get('success'):
+            return jsonify(result)
+        else:
+            return jsonify({
+                'success': False,
+                'error': result.get('error', '分析中にエラーが発生しました')
+            }), 500
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'サーバーエラー: {str(e)}'
+        }), 500
