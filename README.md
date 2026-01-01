@@ -25,6 +25,13 @@
    - スクレイピングタスク管理
    - カテゴリ・広告管理
 
+4. **企業分析API**（Phase 2）
+   - Gemini AIによる企業Webサイト自動解析
+   - 事業内容・業界・強み・課題の構造化抽出
+   - 90日間キャッシュで高速応答・コスト削減
+   - 管理画面テストページ（`/admin/test_company_analysis`）
+   - RESTful API（`/api/v1/companies`）
+
 ## 技術スタック
 
 ### バックエンド
@@ -62,6 +69,7 @@ Salon: サロン情報
 Category: カテゴリマスタ
 Advertisement: 広告枠
 Coupon: クーポン（未使用）
+CompanyAnalysis: 企業分析結果（Gemini AI）
 ```
 
 ### スクレイピングDB（scraping_data.db）
@@ -92,16 +100,32 @@ ScrapingTask: タスクキュー（GMAP/HPBタイプ）
 
 ## 主要スクリプト
 
+### スクレイピング
 - `run_gmap_scraper.py`: Google Mapスクレイパー実行
 - `run_hpb_scraper.py`: Hot Pepper Beautyスクレイパー実行
 - `run_hpb_details_updater.py`: HPB詳細情報更新
+
+### 企業分析（Phase 2）
+- `test_company_analysis.py`: 企業分析機能の統合テスト
+- `scripts/cleanup_company_cache.py`: 期限切れキャッシュ削除
+
+### マスタデータ
 - `seed_*.py`: マスタデータ投入スクリプト
 - `migrate_db_split.py`: DB分割移行スクリプト
 
 ## 環境変数
 
 ```bash
-GOOGLE_MAPS_API_KEY=<your-api-key>
+GOOGLE_MAPS_API_KEY=<your-google-maps-api-key>
+GEMINI_API_KEY=<your-gemini-api-key>
+DEEPBIZ_API_KEY=<your-deepbiz-api-key>  # 企業分析API認証用
+```
+
+または`.env`ファイルに記載：
+```
+GOOGLE_MAPS_API_KEY=xxx
+GEMINI_API_KEY=xxx
+DEEPBIZ_API_KEY=xxx
 ```
 
 ## 開発環境セットアップ

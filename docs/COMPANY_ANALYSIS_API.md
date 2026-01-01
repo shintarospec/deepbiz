@@ -10,7 +10,46 @@ export GEMINI_API_KEY="your-gemini-api-key"
 export DEEPBIZ_API_KEY="your-deepbiz-api-key"
 ```
 
+または、`.env`ファイルに記載：
+```
+GEMINI_API_KEY=your-gemini-api-key
+DEEPBIZ_API_KEY=your-deepbiz-api-key
+```
+
 ## テスト実行
+
+### 方法1: GUIテスト（推奨）
+
+最も簡単なテスト方法です。
+
+1. **サーバー起動**
+```bash
+cd /workspaces/deepbiz
+source venv/bin/activate
+flask run
+```
+
+2. **ブラウザでアクセス**
+```
+http://localhost:5000/admin/test_company_analysis
+```
+
+3. **テスト実行**
+   - **企業ウェブサイトURL**: 分析したい企業のURL（例: https://www.cyberagent.co.jp/）
+   - **サンプルテキスト**: テスト用テキストを直接入力、または空欄で自動スクレイピング
+   - **分析開始ボタン**: クリックしてAI分析実行
+
+4. **結果確認**
+   - 📋 事業内容
+   - 🏢 業界
+   - 📊 企業規模
+   - 💪 強み（リスト形式）
+   - 🎯 ターゲット顧客
+   - 🔑 キーワード（バッジ表示）
+   - ❗ 推定される課題
+   - 💰 コスト情報（トークン使用量と実際のコスト）
+
+### 方法2: curl（APIテスト）
 
 ### 1. ローカルサーバー起動
 
