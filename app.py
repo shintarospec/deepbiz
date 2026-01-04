@@ -1255,7 +1255,15 @@ def test_company_analysis_api():
         # サンプルテキストが指定されていない場合はスクレイピング
         if not sample_text:
             scraper = WebScraper()
-            company_content = scraper.scrape_company_website(url)
+            scrape_result = scraper.scrape_website(url)
+            
+            if not scrape_result['success']:
+                return jsonify({
+                    'success': False,
+                    'error': f"スクレイピング失敗: {scrape_result['error']}"
+                }), 400
+            
+            company_content = scrape_result['text']
             
             if not company_content or len(company_content.strip()) < 50:
                 return jsonify({
