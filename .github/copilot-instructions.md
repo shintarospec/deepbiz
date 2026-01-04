@@ -190,13 +190,12 @@ except WebDriverException:
    git push
    
    # VPSで同期（1コマンド）
-   sshpass -p 'ryoji2222' ssh ubuntu@133.167.116.58 \
-     'cd /var/www/salon_app && git pull'
+   ssh ubuntu@133.167.116.58 'cd /var/www/salon_app && git pull'
    ```
 
 4. **VPSでテスト実行**
    ```bash
-   sshpass -p 'ryoji2222' ssh ubuntu@133.167.116.58 \
+   ssh ubuntu@133.167.116.58 \
      "cd /var/www/salon_app && venv/bin/python scripts/new_script.py --test"
    ```
 
@@ -208,7 +207,7 @@ except WebDriverException:
 
 6. **Webアプリ再起動（コード変更時）**
    ```bash
-   sshpass -p 'ryoji2222' ssh ubuntu@133.167.116.58 \
+   ssh ubuntu@133.167.116.58 \
      'cd /var/www/salon_app && pkill -f gunicorn && \
       venv/bin/gunicorn --workers 3 --bind unix:salon_app.sock -m 007 app:app --daemon'
    ```
