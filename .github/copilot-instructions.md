@@ -40,6 +40,10 @@
 - **アプリケーションパス:** `/var/www/salon_app`
 - **Python環境:** venv (`/var/www/salon_app/venv`)
 - **Git管理:** ✅ 有効（2026年1月4日～）origin/main と同期
+- **SSH認証:** ✅ 鍵認証（2026年1月4日～）
+  - ローカル鍵: `~/.ssh/id_ed25519_deepbiz`
+  - VPS公開鍵: `/home/ubuntu/.ssh/authorized_keys`
+  - SSH config: `~/.ssh/config` (エイリアス: `deepbiz-vps`)
 
 ---
 
