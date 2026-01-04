@@ -88,32 +88,32 @@
                 </tr>
             </thead>
             <tbody>
-                {% for salon in salons %}
+                {% for salon in bizs %}
                 <tr>
-                    <td><input class="form-check-input" type="checkbox" name="selected_ids" value="{{ salon.id }}"></td>
-                <td>{{ salon.id }}</td>
+                    <td><input class="form-check-input" type="checkbox" name="selected_ids" value="{{ biz.id }}"></td>
+                <td>{{ biz.id }}</td>
                 <td>
-                    <a href="{{ url_for('salon_detail', salon_id=salon.id) }}" target="_blank">
-                        {{ salon.name or salon.name_hpb or '(名称未登録)' }}
+                    <a href="{{ url_for('salon_detail', salon_id=biz.id) }}" target="_blank">
+                        {{ biz.name or biz.name_hpb or '(名称未登録)' }}
                     </a>
                 </td>
-                <td class="text-break" style="max-width: 300px;">{{ salon.address or 'N/A' }}</td>
+                <td class="text-break" style="max-width: 300px;">{{ biz.address or 'N/A' }}</td>
                 <td>
-                    {% for category in salon.categories %}
+                    {% for category in biz.categories %}
                         <span class="badge bg-secondary fw-normal">{{ category.name }}</span>
                     {% endfor %}
                 </td>
                 <td class="text-center">
                     <div class="btn-group">
-                        <a href="{{ url_for('edit_salon', salon_id=salon.id) }}" class="btn btn-sm btn-outline-light" data-bs-toggle="tooltip" data-bs-title="編集">
+                        <a href="{{ url_for('edit_salon', salon_id=biz.id) }}" class="btn btn-sm btn-outline-light" data-bs-toggle="tooltip" data-bs-title="編集">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <form action="{{ url_for('delete_salon', salon_id=salon.id) }}" method="POST" class="d-inline" onsubmit="return confirm('本当にこのサロンを削除しますか？');">
+                        <form action="{{ url_for('delete_salon', salon_id=biz.id) }}" method="POST" class="d-inline" onsubmit="return confirm('本当にこのサロンを削除しますか？');">
                             <button type="submit" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" data-bs-title="削除">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </form>
-                        <a href="{{ url_for('scrape_jobs_for_salon', salon_id=salon.id) }}" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" data-bs-title="求人取得">
+                        <a href="{{ url_for('scrape_jobs_for_salon', salon_id=biz.id) }}" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" data-bs-title="求人取得">
                             <i class="bi bi-briefcase"></i>
                         </a>
                     </div>

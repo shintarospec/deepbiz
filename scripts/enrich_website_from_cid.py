@@ -13,7 +13,7 @@ import argparse
 sys.path.append('/var/www/salon_app')
 os.chdir('/var/www/salon_app')
 
-from app import app, db, Salon, get_stealth_driver
+from app import app, db, Biz, get_stealth_driver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -172,9 +172,9 @@ def enrich_website_url(limit=None):
     
     with app.app_context():
         # CIDがあるがwebsite_urlがないクリニックを取得
-        query = Salon.query.filter(
-            Salon.cid.isnot(None),
-            Salon.website_url.is_(None)
+        query = Biz.query.filter(
+            Biz.cid.isnot(None),
+            Biz.website_url.is_(None)
         )
         
         if limit:
@@ -302,8 +302,8 @@ def enrich_website_url(limit=None):
             print(f"ブラウザ再起動回数: {driver_restarts}回")
             
             # 現在の全体状況
-            total_salons = Salon.query.count()
-            with_website = Salon.query.filter(Salon.website_url.isnot(None)).count()
+            total_salons = Biz.query.count()
+            with_website = Biz.query.filter(Biz.website_url.isnot(None)).count()
             
             print(f"\n現在の全体状況:")
             print(f"  総クリニック数: {total_salons}件")

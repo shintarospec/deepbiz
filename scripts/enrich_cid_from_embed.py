@@ -11,7 +11,7 @@ import re
 sys.path.append('/var/www/salon_app')
 os.chdir('/var/www/salon_app')
 
-from app import app, db, Salon, get_stealth_driver
+from app import app, db, Biz, get_stealth_driver
 
 def get_cid_from_place_id(place_id, api_key, driver):
     """
@@ -82,9 +82,9 @@ def enrich_cid(limit=None):
     
     with app.app_context():
         # Place IDがあるがCIDがないクリニックを取得
-        query = Salon.query.filter(
-            Salon.place_id.isnot(None),
-            Salon.cid.is_(None)
+        query = Biz.query.filter(
+            Biz.place_id.isnot(None),
+            Biz.cid.is_(None)
         )
         
         if limit:
@@ -164,14 +164,14 @@ def enrich_cid(limit=None):
         print(f"成功率: {success/total*100:.1f}%")
         
         # 統計情報
-        with_cid = Salon.query.filter(Salon.cid.isnot(None)).count()
-        with_place_id = Salon.query.filter(Salon.place_id.isnot(None)).count()
+        with_cid = Biz.query.filter(Biz.cid.isnot(None)).count()
+        with_place_id = Biz.query.filter(Biz.place_id.isnot(None)).count()
         
         print(f"\n現在の状況:")
         print(f"  CID有り: {with_cid}件")
         print(f"  Place ID有り: {with_place_id}件")
         print(f"  CID取得率: {with_cid/with_place_id*100:.1f}%")
-        print(f"  総クリニック数: {Salon.query.count()}件")
+        print(f"  総クリニック数: {Biz.query.count()}件")
 
 
 if __name__ == '__main__':

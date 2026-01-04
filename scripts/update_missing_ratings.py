@@ -10,7 +10,7 @@ import requests
 sys.path.append('/var/www/salon_app')
 os.chdir('/var/www/salon_app')
 
-from app import app, db, Salon, ReviewSummary
+from app import app, db, Biz, ReviewSummary
 
 def update_missing_ratings():
     """
@@ -23,12 +23,12 @@ def update_missing_ratings():
     
     with app.app_context():
         # Place IDはあるが評価データがないクリニックを取得
-        salons_with_place_id = Salon.query.filter(Salon.place_id.isnot(None)).all()
+        salons_with_place_id = Biz.query.filter(Biz.place_id.isnot(None)).all()
         
         missing_reviews = []
         for salon in salons_with_place_id:
             google_review = ReviewSummary.query.filter_by(
-                salon_id=salon.id,
+                biz_id=salon.id,
                 source_name='Google'
             ).first()
             
@@ -65,7 +65,7 @@ def update_missing_ratings():
                     if rating is not None:
                         # ReviewSummaryを作成
                         google_review = ReviewSummary(
-                            salon_id=salon.id,
+                            biz_id=salon.id,
                             source_name='Google',
                             rating=rating,
                             count=review_count
@@ -96,10 +96,10 @@ def update_missing_ratings():
         print(f"失敗: {failed}件")
         
         # 最終統計
-        total_with_reviews = db.session.query(Salon).join(ReviewSummary).filter(
+        total_with_reviews = db.session.query(Biz).join(ReviewSummary).filter(
             ReviewSummary.source_name == 'Google'
         ).count()
-        total_salons = Salon.query.count()
+        total_salons = Biz.query.count()
         
         print(f"\n現在の状況:")
         print(f"  総クリニック数: {total_salons}件")

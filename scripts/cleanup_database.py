@@ -12,12 +12,12 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from models import db, Area, Category, Salon, ScrapingTask, salon_categories
+from models import db, Area, Category, Biz, ScrapingTask, biz_categories
 from flask import Flask
 from sqlalchemy import text
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), '../instance/salon_data.db')}"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), '../instance/biz_data.db')}"
 app.config['SQLALCHEMY_BINDS'] = {
     'scraping': f"sqlite:///{os.path.join(os.path.dirname(__file__), '../instance/scraping_data.db')}"
 }
@@ -69,19 +69,19 @@ def cleanup_salons_by_category(keep_clinic_only=False):
         print("警告: '美容クリニック'カテゴリが見つかりません")
         return
     
-    total_before = Salon.query.count()
+    total_before = Biz.query.count()
     
     # 美容クリニックカテゴリを持つサロンのID一覧を取得
-    clinic_salon_ids = db.session.query(salon_categories.c.salon_id).filter(
-        salon_categories.c.category_id == clinic_category.id
+    clinic_biz_ids = db.session.query(biz_categories.c.biz_id).filter(
+        biz_categories.c.category_id == clinic_category.id
     ).all()
-    clinic_salon_ids = [s[0] for s in clinic_salon_ids]
+    clinic_biz_ids = [s[0] for s in clinic_biz_ids]
     
     # 美容クリニックカテゴリを持たないサロンを削除
-    deleted = Salon.query.filter(~Salon.id.in_(clinic_salon_ids)).delete(synchronize_session=False)
+    deleted = Biz.query.filter(~Biz.id.in_(clinic_biz_ids)).delete(synchronize_session=False)
     db.session.commit()
     
-    total_after = Salon.query.count()
+    total_after = Biz.query.count()
     
     print(f"削除前: {total_before}件")
     print(f"削除: {deleted}件")

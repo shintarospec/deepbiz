@@ -3,7 +3,7 @@ from sqlalchemy import or_, and_
 
 # app.pyから必要なものをインポート
 from app import app, db, get_hpb_details
-from models import Salon, ReviewSummary
+from models import Biz, ReviewSummary
 
 def update_hpb_details_batch():
     """
@@ -18,14 +18,14 @@ def update_hpb_details_batch():
         # 2. Hot PepperのReviewSummaryが存在しない、OR 存在するがratingがNULL (前回失敗した)
         
         # SQLAlchemyのouterjoinを使って、ReviewSummaryが存在しないサロンも対象に含める
-        target_salons = db.session.query(Salon).outerjoin(
+        target_salons = db.session.query(Biz).outerjoin(
             ReviewSummary, 
             and_(
-                Salon.id == ReviewSummary.salon_id,
+                Biz.id == ReviewSummary.biz_id,
                 ReviewSummary.source_name == 'Hot Pepper'
             )
         ).filter(
-            Salon.hotpepper_url.isnot(None),
+            Biz.hotpepper_url.isnot(None),
             or_(
                 ReviewSummary.id.is_(None),
                 ReviewSummary.rating.is_(None)
@@ -62,12 +62,12 @@ def update_hpb_details_batch():
                     # 評価と口コミ件数をReviewSummaryテーブルに保存/更新
                     if details.get('rating') is not None or details.get('review_count') is not None:
                         hpb_summary = ReviewSummary.query.filter_by(
-                            salon_id=salon.id, 
+                            biz_id=salon.id, 
                             source_name='Hot Pepper'
                         ).first()
 
                         if not hpb_summary:
-                            hpb_summary = ReviewSummary(salon_id=salon.id, source_name='Hot Pepper')
+                            hpb_summary = ReviewSummary(biz_id=salon.id, source_name='Hot Pepper')
                             db.session.add(hpb_summary)
                             print("  -> 新しいReviewSummaryレコードを作成しました。")
                         

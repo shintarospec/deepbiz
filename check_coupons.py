@@ -7,8 +7,8 @@ def check_coupons_in_db():
     """データベース内のクーポンを確認する"""
     # Flaskのアプリケーションコンテキスト内でデータベース操作を行う
     with app.app_context():
-        salon_id_to_check = 167
-        coupons = Coupon.query.filter_by(salon_id=salon_id_to_check).all()
+        biz_id_to_check = 167
+        coupons = Coupon.query.filter_by(biz_id=biz_id_to_check).all()
         
         if coupons:
             print(f"{len(coupons)}件のクーポンが見つかりました。")

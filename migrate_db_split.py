@@ -5,7 +5,7 @@ from sqlalchemy import create_engine, inspect, text
 # データベースファイルが置かれているフォルダ
 INSTANCE_FOLDER = 'instance'
 # 公開サイト用DBのファイル名
-PUBLIC_DB_NAME = 'salon_data.db'
+PUBLIC_DB_NAME = 'biz_data.db'
 # スクレイピング用DBのファイル名
 SCRAPING_DB_NAME = 'scraping_data.db'
 
@@ -14,7 +14,7 @@ SCRAPING_DB_PATH = os.path.join(INSTANCE_FOLDER, SCRAPING_DB_NAME)
 
 # それぞれのDBに残すべきテーブルを定義
 PUBLIC_TABLES = [
-    'salon', 'category', 'job', 'coupon', 'advertisement', 'salon_categories',
+    'salon', 'category', 'job', 'coupon', 'advertisement', 'biz_categories',
     'alembic_version' # マイグレーション履歴テーブル
 ]
 SCRAPING_TABLES = [
@@ -35,8 +35,8 @@ def migrate_databases():
         print(f"エラー: 元となるデータベース '{PUBLIC_DB_PATH}' が見つかりません。")
         return
 
-    # 2. 公開用DB (salon_data.db) から不要なテーブルを削除
-    print("\n--- 公開用DB (salon_data.db) のクリーンアップを開始 ---")
+    # 2. 公開用DB (biz_data.db) から不要なテーブルを削除
+    print("\n--- 公開用DB (biz_data.db) のクリーンアップを開始 ---")
     public_engine = create_engine(f'sqlite:///{PUBLIC_DB_PATH}')
     with public_engine.connect() as connection:
         inspector = inspect(public_engine)

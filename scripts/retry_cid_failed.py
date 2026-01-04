@@ -17,7 +17,7 @@ import argparse
 sys.path.append('/var/www/salon_app')
 os.chdir('/var/www/salon_app')
 
-from app import app, db, Salon, get_stealth_driver
+from app import app, db, Biz, get_stealth_driver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -162,9 +162,9 @@ def retry_failed_cid(limit=None):
     
     with app.app_context():
         # Place IDがあるがCIDがないクリニックを取得
-        query = Salon.query.filter(
-            Salon.place_id.isnot(None),
-            Salon.cid.is_(None)
+        query = Biz.query.filter(
+            Biz.place_id.isnot(None),
+            Biz.cid.is_(None)
         )
         
         if limit:
@@ -289,9 +289,9 @@ def retry_failed_cid(limit=None):
             
             # 全体状況
             with app.app_context():
-                total_salons = Salon.query.count()
-                with_place_id = Salon.query.filter(Salon.place_id.isnot(None)).count()
-                with_cid = Salon.query.filter(Salon.cid.isnot(None)).count()
+                total_salons = Biz.query.count()
+                with_place_id = Biz.query.filter(Biz.place_id.isnot(None)).count()
+                with_cid = Biz.query.filter(Biz.cid.isnot(None)).count()
                 remaining = with_place_id - with_cid
                 
                 print(f"\n現在の全体状況:")

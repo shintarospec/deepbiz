@@ -13,7 +13,7 @@ import re
 sys.path.append('/var/www/salon_app')
 os.chdir('/var/www/salon_app')
 
-from app import app, db, Salon, get_stealth_driver
+from app import app, db, Biz, get_stealth_driver
 from selenium.webdriver.common.by import By
 from datetime import datetime
 
@@ -111,9 +111,9 @@ def enrich_contacts(limit=None):
     
     with app.app_context():
         # Website URLがあるクリニックを取得
-        query = Salon.query.filter(
-            Salon.website_url.isnot(None),
-            Salon.inquiry_url.is_(None)  # まだ問い合わせページを取得していない
+        query = Biz.query.filter(
+            Biz.website_url.isnot(None),
+            Biz.inquiry_url.is_(None)  # まだ問い合わせページを取得していない
         )
         
         if limit:
@@ -196,15 +196,15 @@ def enrich_contacts(limit=None):
         print(f"失敗: {failed}件")
         
         # 統計情報
-        with_inquiry = Salon.query.filter(Salon.inquiry_url.isnot(None)).count()
-        with_email = Salon.query.filter(Salon.email.isnot(None)).count()
-        with_phone = Salon.query.filter(Salon.phone.isnot(None)).count()
+        with_inquiry = Biz.query.filter(Biz.inquiry_url.isnot(None)).count()
+        with_email = Biz.query.filter(Biz.email.isnot(None)).count()
+        with_phone = Biz.query.filter(Biz.phone.isnot(None)).count()
         
         print(f"\n現在の状況:")
         print(f"  問い合わせページ有り: {with_inquiry}件")
         print(f"  メール有り: {with_email}件")
         print(f"  電話有り: {with_phone}件")
-        print(f"  総クリニック数: {Salon.query.count()}件")
+        print(f"  総クリニック数: {Biz.query.count()}件")
 
 
 if __name__ == '__main__':

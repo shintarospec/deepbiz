@@ -32,7 +32,7 @@ def calculate_text_similarity(str1, str2):
         return 0.0
     return SequenceMatcher(None, str1, str2).ratio()
 
-def try_merge_hpb_with_gmap(hpb_salon, db, Salon):
+def try_merge_hpb_with_gmap(hpb_salon, db, Biz):
     """
     HPBで新規登録したサロンに対して、
     Gmapの既存データとマッチするものを探してマージ
@@ -40,7 +40,7 @@ def try_merge_hpb_with_gmap(hpb_salon, db, Salon):
     Args:
         hpb_salon: HPBサロンオブジェクト
         db: データベースセッション
-        Salon: Salonモデル
+        Biz: Salonモデル
     
     Returns:
         bool: マージが成功したかどうか
@@ -53,10 +53,10 @@ def try_merge_hpb_with_gmap(hpb_salon, db, Salon):
     hpb_name = normalize_name_for_matching(hpb_salon.name_hpb or '')
     
     # Gmapから取得済みでHPBがまだ紐付いていないサロンを検索
-    candidates = Salon.query.filter(
-        Salon.hotpepper_url.is_(None),
-        Salon.place_id.isnot(None),  # Gmapデータがある
-        Salon.address.isnot(None)
+    candidates = Biz.query.filter(
+        Biz.hotpepper_url.is_(None),
+        Biz.place_id.isnot(None),  # Gmapデータがある
+        Biz.address.isnot(None)
     ).limit(100).all()  # パフォーマンス考慮で上限設定
     
     best_match = None

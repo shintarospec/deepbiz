@@ -9,7 +9,7 @@ import re
 sys.path.append('/var/www/salon_app')
 os.chdir('/var/www/salon_app')
 
-from app import app, db, Salon
+from app import app, db, Biz
 
 def extract_failed_from_log(log_file='website_scrape.log'):
     """ログファイルからエラーが発生したクリニック名を抽出"""
@@ -40,12 +40,12 @@ def get_failed_clinics_from_db():
     
     with app.app_context():
         # website_urlはあるが、phone/email/inquiry_urlが全て空
-        failed = Salon.query.filter(
-            Salon.website_url.isnot(None),
-            Salon.website_url != '',
-            Salon.phone.is_(None),
-            Salon.email.is_(None),
-            Salon.inquiry_url.is_(None)
+        failed = Biz.query.filter(
+            Biz.website_url.isnot(None),
+            Biz.website_url != '',
+            Biz.phone.is_(None),
+            Biz.email.is_(None),
+            Biz.inquiry_url.is_(None)
         ).all()
         
         return failed

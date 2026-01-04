@@ -8,15 +8,15 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
 from app import app, db
-from models import Salon, Job
+from models import Biz, Job
 
 
-def scrape_and_save_jobs(salon_id, url):
+def scrape_and_save_jobs(biz_id, url):
     """
     指定されたURLから求人情報をスクレイピングし、DBに保存する。
     （ランダム化されたクラス名に対応する最終版）
     """
-    print(f"--- [Salon ID: {salon_id}] のスクレイピング開始: {url} ---")
+    print(f"--- [Biz ID: {biz_id}] のスクレイピング開始: {url} ---")
     driver = None
     try:
         options = webdriver.ChromeOptions()
@@ -46,7 +46,7 @@ def scrape_and_save_jobs(salon_id, url):
             return
 
         # --- DB保存処理 ---
-        Job.query.filter_by(salon_id=salon_id).delete()
+        Job.query.filter_by(biz_id=biz_id).delete()
         new_jobs = []
         for link_tag in job_links:
             # リンクタグのテキストだけでは不十分な場合があるため、
@@ -58,10 +58,10 @@ def scrape_and_save_jobs(salon_id, url):
             if job_url.startswith('/'):
                 job_url = 'https://relax-job.com' + job_url
 
-            job = Job(title=title, job_url=job_url, salon_id=salon_id)
+            job = Job(title=title, job_url=job_url, biz_id=biz_id)
             new_jobs.append(job)
 
-        salon = Salon.query.get(salon_id)
+        salon = Biz.query.get(biz_id)
         if salon:
             salon.rejob_url = url
 
@@ -86,13 +86,13 @@ def run_scraper(start_id=None, end_id=None):
     with app.app_context():
         if start_id and end_id:
             print(f"--- IDが {start_id} から {end_id} のサロンを対象とします ---")
-            salons = Salon.query.filter(Salon.id.between(start_id, end_id)).order_by(Salon.id).all()
+            salons = Biz.query.filter(Biz.id.between(start_id, end_id)).order_by(Biz.id).all()
         elif start_id:
             print(f"--- IDが {start_id} のサロンを対象とします ---")
-            salons = Salon.query.filter_by(id=start_id).all()
+            salons = Biz.query.filter_by(id=start_id).all()
         else:
             print("--- 全てのサロンを対象とします ---")
-            salons = Salon.query.all()
+            salons = Biz.query.all()
 
         if not salons:
             print("対象のサロンがDBに登録されていません。")

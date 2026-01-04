@@ -11,7 +11,7 @@ import csv
 sys.path.append('/var/www/salon_app')
 os.chdir('/var/www/salon_app')
 
-from app import app, db, Salon, Category
+from app import app, db, Biz, Category
 
 def import_csv_clinics(csv_path, prefecture_filter='東京'):
     """
@@ -66,7 +66,7 @@ def import_csv_clinics(csv_path, prefecture_filter='東京'):
                         continue
                     
                     # 重複チェック（名前と住所で）
-                    existing = Salon.query.filter_by(
+                    existing = Biz.query.filter_by(
                         name=name,
                         address=address
                     ).first()
@@ -80,7 +80,7 @@ def import_csv_clinics(csv_path, prefecture_filter='東京'):
                         continue
                     
                     # 新規登録
-                    new_salon = Salon(
+                    new_salon = Biz(
                         name=name,
                         address=address,
                         website_url=official_url
@@ -108,7 +108,7 @@ def import_csv_clinics(csv_path, prefecture_filter='東京'):
         print(f"登録: {imported}件")
         print(f"スキップ: {skipped}件")
         print(f"エラー: {errors}件")
-        print(f"DB総件数: {Salon.query.count()}件")
+        print(f"DB総件数: {Biz.query.count()}件")
 
 if __name__ == '__main__':
     csv_file = '/var/www/salon_app/csv/clinic_list.csv'

@@ -10,7 +10,7 @@ import time
 sys.path.append('/var/www/salon_app')
 os.chdir('/var/www/salon_app')
 
-from app import app, db, Salon, ReviewSummary, get_gmap_place_details, get_cid_from_place_id, get_stealth_driver, get_website_from_gmap
+from app import app, db, Biz, ReviewSummary, get_gmap_place_details, get_cid_from_place_id, get_stealth_driver, get_website_from_gmap
 
 def enrich_with_gmap(limit=None):
     """
@@ -26,7 +26,7 @@ def enrich_with_gmap(limit=None):
     
     with app.app_context():
         # Place IDがないクリニックを取得
-        query = Salon.query.filter(Salon.place_id.is_(None))
+        query = Biz.query.filter(Biz.place_id.is_(None))
         if limit:
             query = query.limit(limit)
         
@@ -81,7 +81,7 @@ def enrich_with_gmap(limit=None):
                     # Google評価を保存・更新
                     if rating is not None:
                         google_review = ReviewSummary.query.filter_by(
-                            salon_id=salon.id,
+                            biz_id=salon.id,
                             source_name='Google'
                         ).first()
                         
@@ -90,7 +90,7 @@ def enrich_with_gmap(limit=None):
                             google_review.count = review_count
                         else:
                             google_review = ReviewSummary(
-                                salon_id=salon.id,
+                                biz_id=salon.id,
                                 source_name='Google',
                                 rating=rating,
                                 count=review_count
@@ -129,12 +129,12 @@ def enrich_with_gmap(limit=None):
         print(f"スキップ: {skipped}件")
         
         # 統計情報
-        with_place_id = Salon.query.filter(Salon.place_id.isnot(None)).count()
-        with_cid = Salon.query.filter(Salon.cid.isnot(None)).count()
+        with_place_id = Biz.query.filter(Biz.place_id.isnot(None)).count()
+        with_cid = Biz.query.filter(Biz.cid.isnot(None)).count()
         print(f"\n現在の状況:")
         print(f"  Place ID有り: {with_place_id}件")
         print(f"  CID有り: {with_cid}件")
-        print(f"  総クリニック数: {Salon.query.count()}件")
+        print(f"  総クリニック数: {Biz.query.count()}件")
 
 if __name__ == '__main__':
     # 引数で処理件数を指定可能（テスト用）

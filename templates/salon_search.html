@@ -42,17 +42,17 @@
     <h2 class="text-2xl font-semibold text-gray-900">検索結果</h2>
     
     <div class="space-y-4">
-      {% for salon in salons %}
+      {% for salon in bizs %}
         <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
           <h2 class="text-xl font-bold text-gray-900 mb-2">
-            <a href="{{ url_for('salon_detail', salon_id=salon.id) }}" class="hover:text-blue-600 transition-colors">
-              {{ salon.name or salon.name_hpb or '(名称未登録)' }}
+            <a href="{{ url_for('salon_detail', salon_id=biz.id) }}" class="hover:text-blue-600 transition-colors">
+              {{ biz.name or biz.name_hpb or '(名称未登録)' }}
             </a>
           </h2>
-          <p class="text-gray-600 mb-3">{{ salon.address }}</p>
+          <p class="text-gray-600 mb-3">{{ biz.address }}</p>
 
           <div class="flex flex-wrap gap-4">
-            {% set google_summary = salon.review_summaries|selectattr('source_name', 'equalto', 'Google')|first %}
+            {% set google_summary = biz.review_summaries|selectattr('source_name', 'equalto', 'Google')|first %}
             {% if google_summary and google_summary.rating %}
             <div class="flex items-center gap-2" title="Googleの評価 {{ '%.1f'|format(google_summary.rating) }}">
               <div class="flex text-yellow-400">
@@ -66,7 +66,7 @@
             </div>
             {% endif %}
 
-            {% set hpb_summary = salon.review_summaries|selectattr('source_name', 'equalto', 'Hot Pepper')|first %}
+            {% set hpb_summary = biz.review_summaries|selectattr('source_name', 'equalto', 'Hot Pepper')|first %}
             {% if hpb_summary and hpb_summary.rating %}
             <div class="flex items-center gap-2" title="Hot Pepperの評価 {{ '%.1f'|format(hpb_summary.rating) }}">
               <div class="flex text-yellow-400">

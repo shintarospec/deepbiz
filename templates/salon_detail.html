@@ -1,19 +1,19 @@
 {% extends "layout.html" %}
-{% block title %}{{ salon.name or salon.name_hpb }} - 詳細情報 - DeepBiz{% endblock %}
+{% block title %}{{ biz.name or biz.name_hpb }} - 詳細情報 - DeepBiz{% endblock %}
 
 {% block content %}
 
-<h1 class="text-3xl font-bold text-gray-900 mb-2">{{ salon.name or salon.name_hpb }}</h1>
+<h1 class="text-3xl font-bold text-gray-900 mb-2">{{ biz.name or biz.name_hpb }}</h1>
 
-{% if salon.name and salon.name_hpb and salon.name != salon.name_hpb %}
+{% if biz.name and biz.name_hpb and biz.name != biz.name_hpb %}
   <p class="text-gray-600 text-lg mb-4">
-    <small>ホットペッパー名: {{ salon.name_hpb }}</small>
+    <small>ホットペッパー名: {{ biz.name_hpb }}</small>
   </p>
 {% endif %}
 
 <div class="flex flex-wrap gap-4 mb-6">
     {# --- Google評価 --- #}
-    {% set google_summary = salon.review_summaries|selectattr('source_name', 'equalto', 'Google')|first %}
+    {% set google_summary = biz.review_summaries|selectattr('source_name', 'equalto', 'Google')|first %}
     {% if google_summary and google_summary.rating %}
     <div class="flex items-center gap-2" title="Googleの評価 {{ '%.1f'|format(google_summary.rating) }}">
         <div class="flex text-yellow-400">
@@ -28,7 +28,7 @@
     {% endif %}
 
     {# --- Hot Pepper評価 --- #}
-    {% set hpb_summary = salon.review_summaries|selectattr('source_name', 'equalto', 'Hot Pepper')|first %}
+    {% set hpb_summary = biz.review_summaries|selectattr('source_name', 'equalto', 'Hot Pepper')|first %}
     {% if hpb_summary and hpb_summary.rating %}
     <div class="flex items-center gap-2" title="Hot Pepperの評価 {{ '%.1f'|format(hpb_summary.rating) }}">
         <div class="flex text-yellow-400">
@@ -43,9 +43,9 @@
     {% endif %}
 </div>
 
-{% if salon.hotpepper_url %}
+{% if biz.hotpepper_url %}
   <div class="mb-6 text-center">
-    <a href="{{ salon.hotpepper_url }}" target="_blank" rel="noopener noreferrer" class="inline-block px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold text-lg">
+    <a href="{{ biz.hotpepper_url }}" target="_blank" rel="noopener noreferrer" class="inline-block px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold text-lg">
       Hot Papper Beauty »
     </a>
   </div>
@@ -53,7 +53,7 @@
 
 <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6" style="height: 400px;">
     <iframe
-    src="https://www.google.com/maps/embed/v1/place?key={{ api_key }}&q=place_id:{{ salon.place_id }}"
+    src="https://www.google.com/maps/embed/v1/place?key={{ api_key }}&q=place_id:{{ biz.place_id }}"
     width="100%"
     height="100%"
     style="border:0;"
@@ -68,14 +68,14 @@
       <tbody class="divide-y divide-gray-200">
         <tr>
           <th class="px-6 py-4 bg-gray-50 text-left text-sm font-medium text-gray-700 w-48">住所</th>
-          <td class="px-6 py-4 text-sm text-gray-900">{{ salon.address or '未登録' }}</td>
+          <td class="px-6 py-4 text-sm text-gray-900">{{ biz.address or '未登録' }}</td>
         </tr>
         <tr>
           <th class="px-6 py-4 bg-gray-50 text-left text-sm font-medium text-gray-700">カテゴリ</th>
           <td class="px-6 py-4 text-sm text-gray-900">
-            {% if salon.categories %}
+            {% if biz.categories %}
               <div class="flex flex-wrap gap-2">
-                {% for category in salon.categories %}
+                {% for category in biz.categories %}
                   <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">{{ category.name }}</span>
                 {% endfor %}
               </div>
@@ -86,14 +86,14 @@
         </tr>
         <tr>
           <th class="px-6 py-4 bg-gray-50 text-left text-sm font-medium text-gray-700">Place ID</th>
-          <td class="px-6 py-4 text-sm text-gray-900 font-mono">{{ salon.place_id or '未登録' }}</td>
+          <td class="px-6 py-4 text-sm text-gray-900 font-mono">{{ biz.place_id or '未登録' }}</td>
         </tr>
         <tr>
           <th class="px-6 py-4 bg-gray-50 text-left text-sm font-medium text-gray-700">CID (Googleマップリンク)</th>
           <td class="px-6 py-4 text-sm">
-            {% if salon.cid %}
-              <a href="https://maps.google.com/?cid={{ salon.cid }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">
-                {{ salon.cid }} (マップで開く)
+            {% if biz.cid %}
+              <a href="https://maps.google.com/?cid={{ biz.cid }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">
+                {{ biz.cid }} (マップで開く)
               </a>
             {% else %}
               <span class="text-gray-900">未登録</span>
@@ -103,9 +103,9 @@
         <tr>
           <th class="px-6 py-4 bg-gray-50 text-left text-sm font-medium text-gray-700">公式サイト</th>
           <td class="px-6 py-4 text-sm">
-            {% if salon.website_url %}
-              <a href="{{ salon.website_url }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline break-all">
-                {{ salon.website_url }}
+            {% if biz.website_url %}
+              <a href="{{ biz.website_url }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline break-all">
+                {{ biz.website_url }}
               </a>
             {% else %}
               <span class="text-gray-900">未登録</span>
@@ -115,9 +115,9 @@
         <tr>
           <th class="px-6 py-4 bg-gray-50 text-left text-sm font-medium text-gray-700">問い合わせページ</th>
           <td class="px-6 py-4 text-sm">
-            {% if salon.inquiry_url %}
-              <a href="{{ salon.inquiry_url }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline break-all">
-                {{ salon.inquiry_url }}
+            {% if biz.inquiry_url %}
+              <a href="{{ biz.inquiry_url }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline break-all">
+                {{ biz.inquiry_url }}
               </a>
             {% else %}
               <span class="text-gray-900">未登録</span>
@@ -126,20 +126,20 @@
         </tr>
         <tr>
           <th class="px-6 py-4 bg-gray-50 text-left text-sm font-medium text-gray-700">メールアドレス</th>
-          <td class="px-6 py-4 text-sm text-gray-900">{{ salon.email or '未登録' }}</td>
+          <td class="px-6 py-4 text-sm text-gray-900">{{ biz.email or '未登録' }}</td>
         </tr>
         <tr>
           <th class="px-6 py-4 bg-gray-50 text-left text-sm font-medium text-gray-700">電話番号</th>
-          <td class="px-6 py-4 text-sm text-gray-900">{{ salon.phone or '未登録' }}</td>
+          <td class="px-6 py-4 text-sm text-gray-900">{{ biz.phone or '未登録' }}</td>
         </tr>
       </tbody>
     </table>
 </div>
 
 <h2 class="text-2xl font-semibold text-gray-900 mb-4">クーポン情報</h2>
-{% if salon.coupons %}
+{% if biz.coupons %}
   <div class="grid gap-4 mb-6">
-    {% for coupon in salon.coupons %}
+    {% for coupon in biz.coupons %}
       <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
         <p class="text-gray-900 font-medium">{{ coupon.title }}</p>
       </div>
@@ -149,9 +149,9 @@
   <p class="text-gray-600 mb-6">このサロンのクーポン情報は見つかりませんでした。</p>
 {% endif %}
 
-{% if salon.hotpepper_url %}
+{% if biz.hotpepper_url %}
   <div class="mb-6">
-    <a href="{{ salon.hotpepper_url }}" target="_blank" rel="noopener noreferrer" class="inline-block px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+    <a href="{{ biz.hotpepper_url }}" target="_blank" rel="noopener noreferrer" class="inline-block px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
       Hot Papper Beauty »
     </a>
   </div>
@@ -171,31 +171,31 @@
       {% endfor %}
     </div>
     <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 text-center">
-      <a href="https://relax-job.com/search?keywords={{ salon.name | urlencode }}" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-gray-900 text-sm hover:underline">
-        「{{ salon.name }}」の求人をリジョブで もっと見る
+      <a href="https://relax-job.com/search?keywords={{ biz.name | urlencode }}" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-gray-900 text-sm hover:underline">
+        「{{ biz.name }}」の求人をリジョブで もっと見る
       </a>
     </div>
   </div>
 {% endif %}
 
 <h2 class="text-2xl font-semibold text-gray-900 mb-4">最新の口コミ (Google)</h2>
-{% if salon.latest_google_review %}
+{% if biz.latest_google_review %}
   <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
     <p class="font-medium text-gray-900 mb-2">
-        {{ salon.latest_google_review.author_name }} 
+        {{ biz.latest_google_review.author_name }} 
         <span class="text-yellow-400 ml-2">
-            {% set rating = salon.latest_google_review.rating | int %}
+            {% set rating = biz.latest_google_review.rating | int %}
             {% for i in range(rating) %}★{% endfor %}{% for i in range(5 - rating) %}☆{% endfor %}
         </span>
     </p>
-    <p class="text-gray-700">{{ salon.latest_google_review.text }}</p>
+    <p class="text-gray-700">{{ biz.latest_google_review.text }}</p>
   </div>
 {% else %}
     <p class="text-gray-600 mb-6">このサロンのGoogle口コミはまだありません。</p>
 {% endif %}
 
-{% if salon.place_id %}
-  <a href="https://search.google.com/local/reviews?placeid={{ salon.place_id }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline mb-6 inline-block">すべての口コミを見る »</a>
+{% if biz.place_id %}
+  <a href="https://search.google.com/local/reviews?placeid={{ biz.place_id }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline mb-6 inline-block">すべての口コミを見る »</a>
 {% endif %}
 
 <div class="mt-8">

@@ -9,7 +9,7 @@ import time
 sys.path.append('/var/www/salon_app')
 os.chdir('/var/www/salon_app')
 
-from app import app, db, Salon, get_cid_from_place_id, get_stealth_driver, get_website_from_gmap
+from app import app, db, Biz, get_cid_from_place_id, get_stealth_driver, get_website_from_gmap
 
 def add_website_urls(limit=None):
     """
@@ -17,9 +17,9 @@ def add_website_urls(limit=None):
     """
     with app.app_context():
         # CIDがあってwebsite_urlがないクリニックを取得
-        query = Salon.query.filter(
-            Salon.cid.isnot(None),
-            Salon.website_url.is_(None)
+        query = Biz.query.filter(
+            Biz.cid.isnot(None),
+            Biz.website_url.is_(None)
         )
         if limit:
             query = query.limit(limit)
@@ -76,10 +76,10 @@ def add_website_urls(limit=None):
         print(f"失敗: {failed}件")
         
         # 統計情報
-        with_website = Salon.query.filter(Salon.website_url.isnot(None)).count()
+        with_website = Biz.query.filter(Biz.website_url.isnot(None)).count()
         print(f"\n現在の状況:")
         print(f"  公式サイトURL有り: {with_website}件")
-        print(f"  総クリニック数: {Salon.query.count()}件")
+        print(f"  総クリニック数: {Biz.query.count()}件")
 
 if __name__ == '__main__':
     limit = int(sys.argv[1]) if len(sys.argv) > 1 else None

@@ -24,7 +24,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import app, db
-from models import Salon
+from models import Biz
 from difflib import SequenceMatcher
 import re
 
@@ -75,7 +75,7 @@ def find_matching_salon(hpb_salon, threshold_address=0.85, threshold_name=0.70):
     マッチする可能性が高いものを探す
     
     Args:
-        hpb_salon: HPBから取得したサロン情報（dict or Salon object）
+        hpb_salon: HPBから取得したサロン情報（dict or Biz object）
         threshold_address: 住所の類似度閾値
         threshold_name: 名前の類似度閾値
     
@@ -91,9 +91,9 @@ def find_matching_salon(hpb_salon, threshold_address=0.85, threshold_name=0.70):
     
     # Google Mapsから取得済みのサロンを検索
     # hotpepper_urlがNullのものを対象（まだマージされていないもの）
-    candidates = Salon.query.filter(
-        Salon.hotpepper_url.is_(None),
-        Salon.address.isnot(None)
+    candidates = Biz.query.filter(
+        Biz.hotpepper_url.is_(None),
+        Biz.address.isnot(None)
     ).all()
     
     best_match = None
@@ -157,9 +157,9 @@ def auto_merge_hpb_with_gmap():
         print("=" * 70)
         
         # HPBからのみ取得されたサロン（hotpepper_urlのみ）
-        hpb_only_salons = Salon.query.filter(
-            Salon.hotpepper_url.isnot(None),
-            Salon.place_id.is_(None)  # Google MapのデータがないもeIAA
+        hpb_only_salons = Biz.query.filter(
+            Biz.hotpepper_url.isnot(None),
+            Biz.place_id.is_(None)  # Google MapのデータがないもeIAA
         ).all()
         
         print(f"\nHPBのみのサロン: {len(hpb_only_salons)}件")

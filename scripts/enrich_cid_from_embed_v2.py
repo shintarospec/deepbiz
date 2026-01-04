@@ -19,7 +19,7 @@ import re
 sys.path.append('/var/www/salon_app')
 os.chdir('/var/www/salon_app')
 
-from app import app, db, Salon, get_stealth_driver
+from app import app, db, Biz, get_stealth_driver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -201,9 +201,9 @@ def enrich_cid(limit=None, skip=0):
     
     with app.app_context():
         # Place IDがあるがCIDがないクリニックを取得
-        query = Salon.query.filter(
-            Salon.place_id.isnot(None),
-            Salon.cid.is_(None)
+        query = Biz.query.filter(
+            Biz.place_id.isnot(None),
+            Biz.cid.is_(None)
         )
         
         # スキップとリミット適用
@@ -340,9 +340,9 @@ def enrich_cid(limit=None, skip=0):
         print(f"ブラウザ再起動回数: {driver_restarts}回")
         
         # 統計情報
-        with_cid = Salon.query.filter(Salon.cid.isnot(None)).count()
-        with_place_id = Salon.query.filter(Salon.place_id.isnot(None)).count()
-        total_salons = Salon.query.count()
+        with_cid = Biz.query.filter(Biz.cid.isnot(None)).count()
+        with_place_id = Biz.query.filter(Biz.place_id.isnot(None)).count()
+        total_salons = Biz.query.count()
         
         print(f"\n現在の全体状況:")
         print(f"  総クリニック数: {total_salons}件")

@@ -14,7 +14,7 @@ from flask import Flask
 
 # Flaskアプリの初期化
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), '../instance/salon_data.db')}"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), '../instance/biz_data.db')}"
 app.config['SQLALCHEMY_BINDS'] = {
     'scraping': f"sqlite:///{os.path.join(os.path.dirname(__file__), '../instance/scraping_data.db')}"
 }

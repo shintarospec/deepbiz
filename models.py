@@ -3,12 +3,12 @@ from datetime import datetime
 
 db = SQLAlchemy()
 
-salon_categories = db.Table('salon_categories',
-    db.Column('salon_id', db.Integer, db.ForeignKey('salon.id', ondelete='CASCADE'), primary_key=True),
+biz_categories = db.Table('biz_categories',
+    db.Column('biz_id', db.Integer, db.ForeignKey('biz.id', ondelete='CASCADE'), primary_key=True),
     db.Column('category_id', db.Integer, db.ForeignKey('category.id', ondelete='CASCADE'), primary_key=True)
 )
 
-class Salon(db.Model):
+class Biz(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=True, index=True)
     name_hpb = db.Column(db.String(255), nullable=True, index=True)
@@ -20,22 +20,22 @@ class Salon(db.Model):
     email = db.Column(db.String(255), nullable=True)
     phone = db.Column(db.String(255), nullable=True)
     hotpepper_url = db.Column(db.String(255), nullable=True, unique=True)
-    categories = db.relationship('Category', secondary=salon_categories, lazy='subquery', backref=db.backref('salons', lazy=True))
-    review_summaries = db.relationship('ReviewSummary', backref='salon', lazy=True, cascade="all, delete-orphan")
+    categories = db.relationship('Category', secondary=biz_categories, lazy='subquery', backref=db.backref('bizs', lazy=True))
+    review_summaries = db.relationship('ReviewSummary', backref='biz', lazy=True, cascade="all, delete-orphan")
 
 class ReviewSummary(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    salon_id = db.Column(db.Integer, db.ForeignKey('salon.id'), nullable=False)
+    biz_id = db.Column(db.Integer, db.ForeignKey('biz.id'), nullable=False)
     source_name = db.Column(db.String(50), nullable=False) # 例: 'Google', 'Hot Pepper'
     rating = db.Column(db.Float, nullable=True)
     count = db.Column(db.Integer, nullable=True)
 
-    # salon_id と source_name の組み合わせがユニークであることを保証
-    __table_args__ = (db.UniqueConstraint('salon_id', 'source_name', name='_salon_source_uc'),)
+    # biz_id と source_name の組み合わせがユニークであることを保証
+    __table_args__ = (db.UniqueConstraint('biz_id', 'source_name', name='_biz_source_uc'),)
 
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    salon_id = db.Column(db.Integer, db.ForeignKey('salon.id'), nullable=False)
+    biz_id = db.Column(db.Integer, db.ForeignKey('biz.id'), nullable=False)
     title = db.Column(db.String(255), nullable=False)
     source = db.Column(db.String(50), nullable=True)          # 求人元 (例: 'リジョブ')
     source_url = db.Column(db.String(500), nullable=True)    # 求人ページのURL
@@ -45,7 +45,7 @@ class Job(db.Model):
 class Coupon(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
-    salon_id = db.Column(db.Integer, db.ForeignKey('salon.id'), nullable=False)
+    biz_id = db.Column(db.Integer, db.ForeignKey('biz.id'), nullable=False)
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)

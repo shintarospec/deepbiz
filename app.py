@@ -9,7 +9,7 @@ import urllib.parse
 import traceback
 from flask import Flask, render_template, request, redirect, url_for, flash, Response, jsonify
 from werkzeug.utils import secure_filename
-from models import db, Salon, Job, Category, Advertisement, Coupon, ScrapingTask, Area, salon_categories, ReviewSummary, CompanyAnalysis
+from models import db, Biz, Job, Category, Advertisement, Coupon, ScrapingTask, Area, biz_categories, ReviewSummary, CompanyAnalysis
 from flask_migrate import Migrate
 from datetime import datetime, timedelta
 from sqlalchemy import desc, nullslast, text, or_
@@ -29,7 +29,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 # Google Maps関連
 from googlemaps import Client as GoogleMaps
-from models import salon_categories 
+from models import biz_categories 
 from sqlalchemy.orm import joinedload
 
 # --- アプリケーションの初期設定 ---
@@ -38,7 +38,7 @@ app.config['SECRET_KEY'] = 'your-very-secret-key-change-this'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(app.instance_path, 'salon_data.db')}"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(app.instance_path, 'biz_data.db')}"
 app.config['SQLALCHEMY_BINDS'] = {
     'scraping': f"sqlite:///{os.path.join(app.instance_path, 'scraping_data.db')}"
 }
@@ -255,27 +255,27 @@ def salon_search():
     clinic_category = Category.query.filter_by(name='美容クリニック').first()
     
     # クエリ構築（美容クリニックのみ）
-    query = Salon.query.options(joinedload(Salon.review_summaries))
+    query = Biz.query.options(joinedload(Biz.review_summaries))
     if clinic_category:
-        query = query.join(Salon.categories).filter(Category.id == clinic_category.id)
+        query = query.join(Biz.categories).filter(Category.id == clinic_category.id)
     
     # キーワード検索
     if keyword:
         search_term = f"%{keyword}%"
-        query = query.filter(Salon.name.ilike(search_term) | Salon.address.ilike(search_term))
+        query = query.filter(Biz.name.ilike(search_term) | Biz.address.ilike(search_term))
     
     # 区で絞り込み
     if selected_ward:
-        query = query.filter(Salon.address.like(f"%{selected_ward}%"))
+        query = query.filter(Biz.address.like(f"%{selected_ward}%"))
     
     # ソート
     if sort_by == 'rating':
         # Google評価を優先、次にHPB評価
         query = query.outerjoin(ReviewSummary, 
-            (ReviewSummary.salon_id == Salon.id) & (ReviewSummary.source_name == 'Google')
-        ).order_by(nullslast(desc(ReviewSummary.rating)), Salon.name)
+            (ReviewSummary.biz_id == Biz.id) & (ReviewSummary.source_name == 'Google')
+        ).order_by(nullslast(desc(ReviewSummary.rating)), Biz.name)
     else:
-        query = query.order_by(Salon.name)
+        query = query.order_by(Biz.name)
     
     pagination = query.paginate(page=page, per_page=20, error_out=False)
     salons = pagination.items
@@ -292,13 +292,13 @@ def salon_search():
         ads=ads
     )
 
-@app.route('/salon/<int:salon_id>')
-def salon_detail(salon_id):
-    salon = db.session.get(Salon, salon_id)
+@app.route('/salon/<int:biz_id>')
+def salon_detail(biz_id):
+    salon = db.session.get(Biz, biz_id)
     if not salon:
         return "サロンが見つかりません", 404
 
-    jobs = Job.query.filter_by(salon_id=salon_id).all()
+    jobs = Job.query.filter_by(biz_id=biz_id).all()
     api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
     ads = {ad.slot_name: ad for ad in Advertisement.query.all()}
 
@@ -309,9 +309,9 @@ def salon_detail(salon_id):
         summary = gmap_data['summary']
         
         # Googleの総合評価サマリーをDBに保存/更新
-        google_summary = ReviewSummary.query.filter_by(salon_id=salon.id, source_name='Google').first()
+        google_summary = ReviewSummary.query.filter_by(biz_id=salon.id, source_name='Google').first()
         if not google_summary:
-            google_summary = ReviewSummary(salon_id=salon.id, source_name='Google')
+            google_summary = ReviewSummary(biz_id=salon.id, source_name='Google')
             db.session.add(google_summary)
 
         # 正しい「総合評価の平均点」と「レビュー総数」を保存する
@@ -346,24 +346,24 @@ def admin_index():
 
     # 基本クエリ（美容クリニックのみ）
     clinic_category = Category.query.filter_by(name='美容クリニック').first()
-    query = Salon.query
+    query = Biz.query
     if clinic_category:
-        query = query.join(Salon.categories).filter(Category.id == clinic_category.id)
+        query = query.join(Biz.categories).filter(Category.id == clinic_category.id)
     
     # 絞り込み条件
     if f_ward:
-        query = query.filter(Salon.address.like(f"%{f_ward}%"))
+        query = query.filter(Biz.address.like(f"%{f_ward}%"))
     if f_search_name:
         search_term = f"%{f_search_name}%"
-        query = query.filter(or_(Salon.name.like(search_term), Salon.name_hpb.like(search_term)))
+        query = query.filter(or_(Biz.name.like(search_term), Biz.name_hpb.like(search_term)))
     if f_search_address:
-        query = query.filter(Salon.address.like(f"%{f_search_address}%"))
+        query = query.filter(Biz.address.like(f"%{f_search_address}%"))
 
     # 並び替え
     if sort_order == 'asc':
-        query = query.order_by(Salon.id.asc())
+        query = query.order_by(Biz.id.asc())
     else:
-        query = query.order_by(Salon.id.desc())
+        query = query.order_by(Biz.id.desc())
 
     pagination = query.paginate(page=page, per_page=50, error_out=False)
     salons = pagination.items
@@ -401,17 +401,17 @@ def admin_bulk_action():
         return redirect(url_for('admin_index'))
 
     # 選択されたIDを整数に変換
-    salon_ids = [int(id) for id in selected_ids]
+    biz_ids = [int(id) for id in selected_ids]
     
     if action == 'delete':
         # --- 一括削除 ---
-        Salon.query.filter(Salon.id.in_(salon_ids)).delete(synchronize_session=False)
+        Biz.query.filter(Biz.id.in_(biz_ids)).delete(synchronize_session=False)
         db.session.commit()
-        flash(f'{len(salon_ids)}件のサロンを削除しました。', 'success')
+        flash(f'{len(biz_ids)}件のサロンを削除しました。', 'success')
 
     elif action == 'get_jobs':
         # --- 一括求人取得 ---
-        salons = Salon.query.filter(Salon.id.in_(salon_ids)).all()
+        salons = Biz.query.filter(Biz.id.in_(biz_ids)).all()
         for salon in salons:
             search_name = salon.name or salon.name_hpb
             if search_name:
@@ -430,10 +430,10 @@ def admin_bulk_action():
     return redirect(url_for('admin_index'))
 
 
-@app.route('/admin/delete/<int:salon_id>', methods=['POST'])
+@app.route('/admin/delete/<int:biz_id>', methods=['POST'])
 @auth_required
-def delete_salon(salon_id):
-    salon_to_delete = db.session.get(Salon, salon_id)
+def delete_salon(biz_id):
+    salon_to_delete = db.session.get(Biz, biz_id)
     if salon_to_delete:
         db.session.delete(salon_to_delete)
         db.session.commit()
@@ -444,7 +444,7 @@ def delete_salon(salon_id):
 @auth_required
 def add_salon():
     if request.method == 'POST':
-        new_salon = Salon(
+        new_salon = Biz(
             name=request.form.get('name'), name_hpb=request.form.get('name_hpb'),
             address=request.form.get('address'), place_id=request.form.get('place_id'), 
             cid=request.form.get('cid'), website_url=request.form.get('website_url'), 
@@ -461,10 +461,10 @@ def add_salon():
     all_categories = Category.query.all()
     return render_template('admin/salon_form.html', categories=all_categories, salon=None)
 
-@app.route('/admin/edit/<int:salon_id>', methods=['GET', 'POST'])
+@app.route('/admin/edit/<int:biz_id>', methods=['GET', 'POST'])
 @auth_required
-def edit_salon(salon_id):
-    salon_to_edit = db.session.get(Salon, salon_id)
+def edit_salon(biz_id):
+    salon_to_edit = db.session.get(Biz, biz_id)
     if request.method == 'POST':
         salon_to_edit.name = request.form.get('name')
         salon_to_edit.name_hpb = request.form.get('name_hpb')
@@ -570,21 +570,21 @@ def delete_category(category_id):
     return redirect(url_for('manage_categories'))
 
 
-@app.route('/admin/scrape_jobs/<int:salon_id>')
+@app.route('/admin/scrape_jobs/<int:biz_id>')
 @auth_required
-def scrape_jobs_for_salon(salon_id):
+def scrape_jobs_for_salon(biz_id):
     """
     指定されたサロンの求人情報をリジョブから取得するバックグラウンドタスクを開始する。
     """
-    salon = db.session.get(Salon, salon_id)
+    salon = db.session.get(Biz, biz_id)
     if not salon:
-        flash(f'サロンID {salon_id} が見つかりません。', 'danger')
+        flash(f'サロンID {biz_id} が見つかりません。', 'danger')
         return redirect(url_for('admin_index'))
     
     # サロン名がない場合は処理を中止
     search_name = salon.name or salon.name_hpb
     if not search_name:
-        flash(f'サロンID {salon_id} に検索可能な名称が設定されていません。', 'warning')
+        flash(f'サロンID {biz_id} に検索可能な名称が設定されていません。', 'warning')
         return redirect(url_for('admin_index'))
 
     # バックグラウンドでスクレイピング処理を実行
@@ -732,14 +732,14 @@ def scrape_gmap_and_save(task_id, keyword, category_name, update_mode):
                 place_id = place_details.get('place_id')
                 if not place_id: continue
 
-                existing_salon = Salon.query.filter_by(place_id=place_id).first()
+                existing_salon = Biz.query.filter_by(place_id=place_id).first()
                 
                 target_salon = None
 
                 if not existing_salon:
                     # --- 新規サロンの場合 ---
                     print(f"新規サロン発見 (Google Map名): {place_details.get('name')}", flush=True)
-                    new_salon = Salon(
+                    new_salon = Biz(
                         name=place_details.get('name'),
                         place_id=place_id,
                         address=place_details.get('formatted_address')
@@ -773,9 +773,9 @@ def scrape_gmap_and_save(task_id, keyword, category_name, update_mode):
                 count = place_details.get('user_ratings_total')
 
                 if rating is not None or count is not None:
-                    summary = ReviewSummary.query.filter_by(salon_id=target_salon.id, source_name='Google').first()
+                    summary = ReviewSummary.query.filter_by(biz_id=target_salon.id, source_name='Google').first()
                     if not summary:
-                        summary = ReviewSummary(salon_id=target_salon.id, source_name='Google')
+                        summary = ReviewSummary(biz_id=target_salon.id, source_name='Google')
                         db.session.add(summary)
                     summary.rating = rating
                     summary.count = count
@@ -795,13 +795,13 @@ def scrape_gmap_and_save(task_id, keyword, category_name, update_mode):
                 driver.quit()
 
 
-def _scrape_rejob_for_salon(app_context, salon_id, salon_name):
+def _scrape_rejob_for_salon(app_context, biz_id, salon_name):
     """
     【最終改善版】
     あなたの以前のロジック（ページネーション基準）とbot対策を組み合わせたバージョン
     """
     app_context.push()
-    print(f"--- [求人取得開始] サロン: {salon_name} (ID: {salon_id}) ---", flush=True)
+    print(f"--- [求人取得開始] サロン: {salon_name} (ID: {biz_id}) ---", flush=True)
     driver = None
     try:
         # 1. 検索URLを構築してアクセス
@@ -841,7 +841,7 @@ def _scrape_rejob_for_salon(app_context, salon_id, salon_name):
             return
 
         # 3. DB保存処理
-        Job.query.filter_by(salon_id=salon_id, source='リジョブ').delete()
+        Job.query.filter_by(biz_id=biz_id, source='リジョブ').delete()
 
         new_jobs = []
         for link_tag in job_link_tags:
@@ -850,7 +850,7 @@ def _scrape_rejob_for_salon(app_context, salon_id, salon_name):
 
             # 詳細ページから給与などを取得するロジックは、一旦省略しリンク取得を優先
             new_job = Job(
-                salon_id=salon_id,
+                biz_id=biz_id,
                 title=title,
                 source='リジョブ',
                 source_url=source_url
@@ -919,9 +919,9 @@ def _enrich_salon_with_hpb_reviews(salon_obj, driver):
         driver.get(review_url)
         time.sleep(3)
         soup = BeautifulSoup(driver.page_source, 'lxml')
-        summary = ReviewSummary.query.filter_by(salon_id=salon_obj.id, source_name='Hot Pepper').first()
+        summary = ReviewSummary.query.filter_by(biz_id=salon_obj.id, source_name='Hot Pepper').first()
         if not summary:
-            summary = ReviewSummary(salon_id=salon_obj.id, source_name='Hot Pepper')
+            summary = ReviewSummary(biz_id=salon_obj.id, source_name='Hot Pepper')
             db.session.add(summary)
         rating_summary_p = soup.find('p', class_='reviewPoint', string=re.compile(r'総合'))
         if rating_summary_p:
@@ -954,7 +954,7 @@ def scrape_salon_list(start_url, category_name, update_mode):
     """
     with app.app_context():
         # ▼▼▼【修正点1】import文を関数の先頭に移動 ▼▼▼
-        from models import salon_categories
+        from models import biz_categories
 
         category_obj = Category.query.filter_by(name=category_name).first()
         if not category_obj:
@@ -1013,11 +1013,11 @@ def scrape_salon_list(start_url, category_name, update_mode):
                     hpb_name = name_tag.get_text(strip=True)
                     
                     # DBから常に最新の状態を取得
-                    existing_salon = Salon.query.filter_by(hotpepper_url=full_url).first()
+                    existing_salon = Biz.query.filter_by(hotpepper_url=full_url).first()
                     
                     if not existing_salon:
                         # HPBのみのデータとして新規登録
-                        new_salon = Salon(name_hpb=hpb_name, hotpepper_url=full_url)
+                        new_salon = Biz(name_hpb=hpb_name, hotpepper_url=full_url)
                         db.session.add(new_salon)
                         new_salon.categories.append(category_obj)
                         print(f"-> 新規発見: {hpb_name}", flush=True)
@@ -1025,9 +1025,9 @@ def scrape_salon_list(start_url, category_name, update_mode):
                         db.session.commit() 
                         total_new += 1
                     else:
-                        association_exists = db.session.query(salon_categories).filter(
-                            salon_categories.c.salon_id == existing_salon.id,
-                            salon_categories.c.category_id == category_obj.id
+                        association_exists = db.session.query(biz_categories).filter(
+                            biz_categories.c.biz_id == existing_salon.id,
+                            biz_categories.c.category_id == category_obj.id
                         ).first() is not None
 
                         if not association_exists:
@@ -1165,16 +1165,16 @@ def test_hpb_details():
     【改修】単一のサロンIDを受け取り、そのHPB追加情報をテスト取得して結果をJSONで返す。
     タイムアウトを防ぐため、クライアント側で1件ずつリクエストを送信する方式に変更。
     """
-    salon_id = request.json.get('salon_id')
-    if not salon_id:
+    biz_id = request.json.get('biz_id')
+    if not biz_id:
         return jsonify({'error': 'サロンIDが指定されていません。'}), 400
 
-    salon = db.session.get(Salon, int(salon_id))
+    salon = db.session.get(Biz, int(biz_id))
     
     # result_itemの初期化
     result_item = {
-        'salon_id': salon_id,
-        'salon_name': f"ID:{salon_id}のサロンが見つかりません",
+        'biz_id': biz_id,
+        'salon_name': f"ID:{biz_id}のサロンが見つかりません",
         'url': None,
         'status': 'Error',
         'details': None

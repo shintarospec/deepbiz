@@ -10,7 +10,7 @@ import re
 sys.path.append('/var/www/salon_app')
 os.chdir('/var/www/salon_app')
 
-from app import app, db, Salon
+from app import app, db, Biz
 
 def normalize_phone_number(phone_str):
     """
@@ -98,7 +98,7 @@ def cleanse_all_data(dry_run=True):
     """
     
     with app.app_context():
-        salons = Salon.query.all()
+        salons = Biz.query.all()
         total = len(salons)
         
         stats = {
