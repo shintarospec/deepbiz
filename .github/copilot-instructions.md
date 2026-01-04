@@ -17,6 +17,8 @@
 - ✅ 管理画面テストページ（`/admin/test_company_analysis`）
 - ✅ RESTful API（`/api/v1/companies/{domain}/analysis`）
 - ✅ CompanyAnalysisモデル実装
+- ✅ **VPS本番デプロイ完了**（2026年1月4日）
+- ✅ WebScraperクラス実装（requests + Seleniumフォールバック）
 
 ---
 
@@ -37,6 +39,7 @@
 - **OS:** Ubuntu 24.04 LTS
 - **アプリケーションパス:** `/var/www/salon_app`
 - **Python環境:** venv (`/var/www/salon_app/venv`)
+- **Git管理:** ✅ 有効（2026年1月4日～）origin/main と同期
 
 ---
 
@@ -179,22 +182,35 @@ except WebDriverException:
        limit = 10 if args.test else None
    ```
 
-3. **VPSにアップロード**
+3. **VPSに同期（Git経由）**
    ```bash
-   scp scripts/new_script.py ubuntu@133.167.116.58:/var/www/salon_app/scripts/
+   # ローカルでコミット・プッシュ
+   git add scripts/new_script.py
+   git commit -m "feat: Add new script"
+   git push
+   
+   # VPSで同期（1コマンド）
+   sshpass -p 'ryoji2222' ssh ubuntu@133.167.116.58 \
+     'cd /var/www/salon_app && git pull'
    ```
 
 4. **VPSでテスト実行**
    ```bash
    sshpass -p 'ryoji2222' ssh ubuntu@133.167.116.58 \
-     "cd /var/www/salon_app && source venv/bin/activate && \
-      python3 scripts/new_script.py --test"
+     "cd /var/www/salon_app && venv/bin/python scripts/new_script.py --test"
    ```
 
 5. **本番実行**
    ```bash
    # バックグラウンド実行
-   nohup python3 scripts/new_script.py > output.log 2>&1 &
+   nohup venv/bin/python scripts/new_script.py > output.log 2>&1 &
+   ```
+
+6. **Webアプリ再起動（コード変更時）**
+   ```bash
+   sshpass -p 'ryoji2222' ssh ubuntu@133.167.116.58 \
+     'cd /var/www/salon_app && pkill -f gunicorn && \
+      venv/bin/gunicorn --workers 3 --bind unix:salon_app.sock -m 007 app:app --daemon'
    ```
 
 ### デバッグパターン
