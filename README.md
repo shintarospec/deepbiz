@@ -1,36 +1,67 @@
-# DeepBiz - 美容サロン検索・求人情報統合システム
+# DeepBiz - ビジネス情報検索プラットフォーム
 
-さくらVPS上で稼働している美容サロン・クリニック検索サービスのバックエンドシステムです。
+さくらVPS上で稼働するビジネス情報検索サービス。Google Maps情報をベースに、AI分析とHot Pepper Beauty情報を統合した詳細なビジネスプロフィールを提供します。
 
-## システム概要
+---
 
-このシステムは以下の機能を提供しています：
+## 🎯 プロジェクト現在地
+
+**データ数**: 1,905件（美容クリニック）  
+**現在フェーズ**: Phase 2 完了 ✅  
+**次のステップ**: Phase 3（HPB肉付け）
+
+### フェーズ進捗
+
+```
+Phase 0: CSV Import           ✅ 完了（2025年12月21日）
+    ↓  1,905件の基礎データ
+    
+Phase 1: データ収集           ✅ 完了（2025年12月22-24日）
+    ↓  Place ID 90% | CID 85% | Website 94%
+    
+Phase 2: AI企業分析           ✅ 完了（2026年1月4日）
+    ↓  Gemini 2.5 Flash-Lite / 0.12円/社
+    
+Phase 3: HPB肉付け           🔄 次のステップ
+    ↓  クーポン・求人・詳細情報
+    
+Phase 4: TheSide連携         📋 計画中
+```
+
+---
+
+## 📚 ドキュメントガイド
+
+プロジェクトを理解するために、以下の順番で読むことをおすすめします：
+
+| 対象 | ドキュメント | 内容 |
+|-----|------------|------|
+| 🆕 **初めての人** | [HISTORY.md](HISTORY.md) | 時系列で見るプロジェクト履歴 |
+| 💻 **開発者** | [.github/copilot-instructions.md](.github/copilot-instructions.md) | コーディング規約・開発ルール |
+| 📖 **企画者** | [SPECIFICATION.md](SPECIFICATION.md) | システム仕様・機能要件 |
+| 🔧 **運用者** | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | VPSデプロイ・運用手順 |
+| 📊 **Phase詳細** | [docs/](docs/) | 各フェーズの詳細記録 |
+
+### Phase別ドキュメント
+
+- [Phase 0: CSV Import](docs/00_PHASE0_CSV_IMPORT.md) - 初期データ投入
+- [Phase 1: データ収集](docs/01_PHASE1_DATA_COLLECTION.md) - Google Maps情報取得
+- [Phase 2: AI企業分析](docs/02_PHASE2_AI_ANALYSIS.md) - Gemini解析機能
+- [Phase 3: HPB肉付け](docs/03_PHASE3_HPB_ENRICHMENT.md) - Hot Pepper Beauty連携（計画）
+
+---
+
+## 🏗️ システム概要
 
 ### 主要機能
-1. **サロン検索機能**
-   - Google MapとHot Pepper Beautyから美容サロン・クリニック情報を収集
-   - カテゴリ別検索（美容院、エステ、ネイル、まつエク、リラクゼーション、クリニック）
-   - エリア（都道府県）別絞り込み
-   - 評価順/名前順ソート
 
-2. **データスクレイピング**
-   - Google Maps API連携で店舗情報取得
-   - Hot Pepper Beautyから詳細情報・口コミ取得
-   - リジョブから求人情報取得
-   - バックグラウンドタスク管理システム
-
-3. **管理画面**
-   - サロン情報のCRUD操作
-   - 一括操作（削除、求人取得、詳細情報取得）
-   - スクレイピングタスク管理
-   - カテゴリ・広告管理
-
-4. **企業分析API**（Phase 2）
-   - Gemini AIによる企業Webサイト自動解析
-   - 事業内容・業界・強み・課題の構造化抽出
-   - 90日間キャッシュで高速応答・コスト削減
-   - 管理画面テストページ（`/admin/test_company_analysis`）
-   - RESTful API（`/api/v1/companies`）
+| 機能 | 説明 | Phase |
+|-----|------|-------|
+| **サロン検索** | カテゴリ・エリア別検索、評価順ソート | Phase 0 |
+| **詳細情報表示** | Place ID、CID、Website、連絡先 | Phase 1 |
+| **AI企業分析** | Gemini解析による強み・課題抽出 | Phase 2 ✅ |
+| **HPB統合** | クーポン・求人・口コミ情報 | Phase 3 🔄 |
+| **管理画面** | データ管理・スクレイピングタスク制御 | 全Phase |
 
 ## 技術スタック
 

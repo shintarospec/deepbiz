@@ -258,7 +258,7 @@ if __name__ == '__main__':
 echo $GEMINI_API_KEY
 
 # APIキーの権限確認
-curl -X POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=$GEMINI_API_KEY \
+curl -X POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=$GEMINI_API_KEY \
   -H "Content-Type: application/json" \
   -d '{"contents":[{"parts":[{"text":"Hello"}]}]}'
 ```

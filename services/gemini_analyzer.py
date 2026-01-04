@@ -48,7 +48,8 @@ JSON以外のテキストは出力しないでください。"""
             raise ValueError("GEMINI_API_KEYが設定されていません")
         
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        # 2026年版: Gemini 2.5 Flash (最新版)
+        self.model = genai.GenerativeModel('gemini-2.5-flash-latest')
     
     def analyze_company(self, company_url: str, html_content: str) -> Dict:
         """
@@ -100,12 +101,12 @@ Webサイトコンテンツ:
                 'total': response.usage_metadata.total_token_count
             }
             
-            # Gemini 2.0 Flash料金（2026年1月時点）
-            # Input: $0.00001875 per 1K tokens
-            # Output: $0.000075 per 1K tokens
+            # Gemini 2.5 Flash-Lite 料金（2026年1月時点）
+            # Input: $0.0001 per 1K tokens
+            # Output: $0.0004 per 1K tokens
             cost = (
-                tokens_used['input'] * 0.00001875 / 1000 +
-                tokens_used['output'] * 0.000075 / 1000
+                tokens_used['input'] * 0.0001 / 1000 +
+                tokens_used['output'] * 0.0004 / 1000
             )
             
             # JSON抽出
