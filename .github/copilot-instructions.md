@@ -8,7 +8,15 @@
 
 **プロジェクト名:** DeepBiz（旧: Salondb）  
 **目的:** Googleマップのビジネス情報を網羅的にDB化し、詳細な連絡先情報を提供する検索プラットフォーム  
-**現在フェーズ:** Phase 1 - 美容クリニックデータ拡充（1,905件）
+**現在フェーズ:** Phase 2 - AI企業分析機能実装完了、データ収集準備中  
+**関連システム:** TheSide（営業支援プラットフォーム）との連携
+
+### Phase 2実装完了機能
+- ✅ Gemini 2.5 Flash-Lite による企業分析（0.12円/社）
+- ✅ 90日間キャッシュ機能
+- ✅ 管理画面テストページ（`/admin/test_company_analysis`）
+- ✅ RESTful API（`/api/v1/companies/{domain}/analysis`）
+- ✅ CompanyAnalysisモデル実装
 
 ---
 
@@ -52,11 +60,27 @@ class Salon(db.Model):
     review_summaries: List[ReviewSummary] # 口コミ集計
 ```
 
+### Phase 2モデル: CompanyAnalysis
+```python
+class CompanyAnalysis(db.Model):
+    id: int
+    domain: str               # 企業ドメイン（ユニーク）
+    business_description: str # 事業内容
+    industry: str            # 業界
+    strengths: str           # 強み（JSON配列）
+    target_customers: str    # ターゲット顧客
+    key_topics: str          # キーワード（JSON配列）
+    company_size: str        # 企業規模
+    pain_points: str         # 潜在的課題（JSON配列）
+    created_at: datetime     # 作成日時（90日キャッシュ）
+```
+
 ### データ取得の優先順位
 1. **Place ID** → Google Maps検索で取得（最も信頼性が高い）
 2. **CID** → Place IDから変換（マップリンク生成に必要）
 3. **Website/Email/Phone** → 公式サイトスクレイピング
 4. **Review** → Google Maps API（課金注意）
+5. **企業分析** → Gemini 2.5 Flash-Lite（0.12円/社、90日キャッシュ）
 
 ---
 
@@ -97,7 +121,20 @@ url = f"https://www.google.com/maps/search/?api=1&query_place_id={place_id}"
 driver.get(url)
 ```
 
-#### 2. Bot検出回避
+#### 2. AI APIコスト管理
+```python
+# ✅ 必須: キャッシュ確認（90日間有効）
+existing = CompanyAnalysis.query.filter_by(domain=domain).first()
+if existing and (datetime.now() - existing.created_at).days < 90:
+    return existing  # キャッシュヒット、0円
+
+# ✅ Gemini 2.5 Flash-Lite使用（0.12円/社）
+from services.gemini_analyzer import GeminiAnalyzer
+analyzer = GeminiAnalyzer()
+result = analyzer.analyze_company(url)  # 初回のみ課金
+```
+
+#### 3. Bot検出回避
 ```python
 # ✅ 必須: undetected-chromedriverを使用
 from app import get_stealth_driver
