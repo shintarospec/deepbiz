@@ -146,7 +146,48 @@ GROUP BY prefecture;
 -- → 東京都: 1,905
 ```
 
-## 📝 次のステップ
+## � データ収集方式の比較
+
+### 方式A: CSV Import（今回採用）
+
+**フロー**:
+```
+CSV提供 → Salon登録 → 企業名で検索 → Place ID取得
+```
+
+**メリット**:
+- ✅ 特定企業リストを効率的に登録
+- ✅ 企業名検索のため精度が高い
+- ✅ 初期データを素早く構築
+
+**デメリット**:
+- ❌ CSV提供元に依存
+- ❌ 網羅性は限定的
+
+### 方式B: タスクベース（将来の標準）
+
+**フロー**:
+```
+エリア×業種 → タスク生成 → Google Maps検索 → Place ID取得 → Salon登録
+```
+
+**メリット**:
+- ✅ ゼロから網羅的に収集可能
+- ✅ スケーラブル（多業種展開対応）
+- ✅ CSV不要で自律的に構築
+
+**デメリット**:
+- ❌ 初期タスク数が多い（3,423件）
+- ❌ ノイズ混入の可能性
+
+**関連スクリプト**:
+- [scripts/generate_simple_tasks.py](../scripts/generate_simple_tasks.py) - 23区単位（23タスク）
+- [scripts/generate_detailed_area_tasks.py](../scripts/generate_detailed_area_tasks.py) - 町名レベル（3,423タスク）
+- [run_gmap_scraper.py](../run_gmap_scraper.py) - タスク実行
+
+---
+
+## �📝 次のステップ
 
 Phase 0で基礎データ（1,905件）が整いました。次のPhase 1では、Google Maps情報を追加取得します：
 

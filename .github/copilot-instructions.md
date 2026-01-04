@@ -82,6 +82,32 @@ class CompanyAnalysis(db.Model):
     created_at: datetime     # 作成日時（90日キャッシュ）
 ```
 
+### データ収集の2つの方式
+
+DeepBizは**2つのデータ収集アプローチ**を持つ：
+
+#### 方式A: CSV Import（オプション）
+```python
+# CSVから企業名+住所を登録 → Google Maps検索
+search_keyword = f"{salon.name} {salon.address}"
+# 例: "菊池皮膚科クリニック 東京都千代田区"
+```
+- **用途**: 既存リストの効率的登録
+- **特徴**: 精度高、網羅性低
+- **スクリプト**: `scripts/import_csv_clinics.py`
+
+#### 方式B: タスクベース（標準）
+```python
+# エリア×業種でタスク生成 → Google Maps検索
+search_keyword = f"{area.prefecture}{area.city} {category.name}"
+# 例: "東京都千代田区丸の内 美容クリニック"
+```
+- **用途**: ゼロから網羅的収集
+- **特徴**: 網羅性高、スケーラブル
+- **スクリプト**: `scripts/generate_detailed_area_tasks.py` + `run_gmap_scraper.py`
+
+**共通点**: 両方式とも最終的に `get_gmap_place_details(search_keyword)` を呼び、Place IDを取得
+
 ### データ取得の優先順位
 1. **Place ID** → Google Maps検索で取得（最も信頼性が高い）
 2. **CID** → Place IDから変換（マップリンク生成に必要）
