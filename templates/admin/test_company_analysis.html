@@ -66,23 +66,40 @@
     .analysis-section {
         margin-bottom: 1.5rem;
         padding: 1rem;
-        background-color: #f8f9fa;
+        background-color: #ffffff;
+        border: 1px solid #dee2e6;
         border-left: 4px solid #007bff;
+        border-radius: 0.25rem;
     }
     .analysis-section h6 {
         color: #007bff;
         font-weight: bold;
         margin-bottom: 0.5rem;
     }
+    .analysis-section p,
+    .analysis-section li {
+        color: #212529;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
     .badge-custom {
         margin-right: 0.5rem;
         margin-bottom: 0.5rem;
     }
     .cost-info {
-        background-color: #e7f3ff;
+        background-color: #fff3cd;
+        border: 1px solid #ffc107;
         padding: 1rem;
         border-radius: 0.5rem;
         margin-top: 1rem;
+    }
+    .cost-info h6 {
+        color: #856404;
+        margin-bottom: 0.5rem;
+    }
+    .cost-info p {
+        color: #212529;
+        margin-bottom: 0.25rem;
     }
 </style>
 
@@ -195,11 +212,13 @@ document.getElementById('analysisForm').addEventListener('submit', async functio
             // コスト情報
             const tokensUsed = data.tokens_used;
             const cost = data.cost;
+            const costYen = cost * 160; // USD→JPY換算（1$=160円想定）
             html += `
                 <div class="cost-info">
                     <h6>💰 コスト情報</h6>
                     <p><strong>トークン使用量:</strong> ${tokensUsed.total} トークン (入力: ${tokensUsed.input}, 出力: ${tokensUsed.output})</p>
-                    <p><strong>実行コスト:</strong> ¥${cost.toFixed(6)} (約${(cost * 1000).toFixed(3)}円/1000社)</p>
+                    <p><strong>実行コスト:</strong> $${cost.toFixed(6)} ≈ ¥${costYen.toFixed(3)} / 社</p>
+                    <p class="text-muted mb-0"><small>※ Gemini 2.5 Flash-Lite料金: Input $0.0001/1K, Output $0.0004/1K</small></p>
                 </div>
             `;
             
